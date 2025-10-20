@@ -168,12 +168,12 @@ jobs:
         echo "- [Complete Setup Guide](.github/CODEQL_SETUP.md) - Full documentation" >> $GITHUB_STEP_SUMMARY
       
     - name: 🔍 Initialize CodeQL
-      uses: github/codeql-action/init@64d10c13136e1c5bce3e5fbde8d4906eeaafc885
+      uses: github/codeql-action/init@16140ae1a102900babc80a33c44059580f687047
       with:
         languages: ${{ matrix.language }}
         
     - name: 🔨 Auto-build
-      uses: github/codeql-action/autobuild@64d10c13136e1c5bce3e5fbde8d4906eeaafc885
+      uses: github/codeql-action/autobuild@16140ae1a102900babc80a33c44059580f687047
       if: matrix.language == 'javascript'
       
     - name: 🔨 Manual build for C++
@@ -199,7 +199,7 @@ jobs:
         fi
         
     - name: 🔍 Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@64d10c13136e1c5bce3e5fbde8d4906eeaafc885
+      uses: github/codeql-action/analyze@16140ae1a102900babc80a33c44059580f687047
       with:
         category: "/language:${{ matrix.language }}"
         upload: true
