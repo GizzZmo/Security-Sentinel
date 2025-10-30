@@ -140,16 +140,6 @@ jobs:
       env:
         SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
       continue-on-error: true
-      if: ${{ secrets.SEMGREP_APP_TOKEN != '' }}
-        
-    - name: 🔍 Skip Semgrep (no token)
-      if: ${{ secrets.SEMGREP_APP_TOKEN == '' }}
-      run: |
-        echo "⚠️ SEMGREP_APP_TOKEN not configured, skipping security scan"
-        echo "This is optional and workflow will continue normally"
-        echo "To enable Semgrep scanning, add SEMGREP_APP_TOKEN secret to repository settings"
-        echo "### Security Scan Status" >> $GITHUB_STEP_SUMMARY
-        echo "ℹ️ Semgrep scanning skipped (no token configured)" >> $GITHUB_STEP_SUMMARY
         
     - name: 📤 Upload SARIF file to GitHub Security
       uses: github/codeql-action/upload-sarif@64d10c13136e1c5bce3e5fbde8d4906eeaafc885
