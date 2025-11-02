@@ -120,7 +120,7 @@ jobs:
     - name: 🔍 Initialize CodeQL
       uses: github/codeql-action/init@0499de31b99561a6d14a36a5f662c2a54f91beee
       with:
-        languages: javascript, cpp
+        languages: ['javascript', 'cpp']
         
     - name: 🔨 Custom build for C++
       run: |

@@ -221,7 +221,7 @@ This issue has been resolved through code changes. The workflow is now compatibl
 2. ⚠️ **Fix Actions policy** - Allow required actions (Settings → Actions) - **Manual action required**
 3. 🔄 **Re-run the workflow** - Verify it completes successfully
 
-**Estimated time:** 2 minutes (down from 5 - only 1 issue to fix now!)  
+**Estimated time:** 2 minutes (reduced from 5 minutes since only 1 issue remains to fix)  
 **Complexity:** Low (simple setting change)  
 **Impact:** Resolves workflow failures, enables comprehensive security scanning
 
