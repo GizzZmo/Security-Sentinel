@@ -1,19 +1,43 @@
-# ⚠️ MANUAL ACTION REQUIRED: CodeQL Configuration Conflict
+# ⚠️ MANUAL ACTION REQUIRED: GitHub Actions Configuration Issues
 
 ## 🚨 Critical Information
 
-**Issue**: CodeQL workflow is failing with error:  
+**Issue 1 - GitHub Actions Policy Restriction**:  
+> "Code scanning with GitHub Actions is not available for this repository. GitHub Actions policy is limiting the use of some required actions."
+
+**Issue 2 - CodeQL Default Setup Conflict**:  
 > "CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled"
 
-**Root Cause**: This is a **repository settings conflict**, NOT a code bug.
+**Root Cause**: These are **repository settings conflicts**, NOT code bugs.
 
-**Solution Required**: Manual repository settings change (cannot be automated)
+**Solution Required**: Manual repository settings changes (cannot be automated)
 
-## ✅ Quick Fix (2 Minutes)
+## ✅ Quick Fix (5 Minutes)
 
-### Step-by-Step Instructions
+### Fix 1: Allow Required GitHub Actions (REQUIRED FIRST)
 
-1. **Navigate to repository settings**  
+GitHub Actions policy is blocking required actions. You need to allow them:
+
+1. **Navigate to Actions settings**  
+   👉 Click here: https://github.com/GizzZmo/Security-Sentinel/settings/actions
+
+2. **Configure Actions permissions**  
+   - Scroll to "Actions permissions" section
+   - Select **"Allow all actions and reusable workflows"**
+   - **OR** select "Allow select actions and reusable workflows" and add:
+     - `actions/*`
+     - `github/codeql-action/*`
+     - `gitleaks/gitleaks-action/*`
+     - `trufflesecurity/trufflehog/*`
+
+3. **Save changes**  
+   - Click "Save" button at the bottom
+
+### Fix 2: Disable CodeQL Default Setup (IF APPLICABLE)
+
+If you also see the "default setup" error, follow these steps:
+
+1. **Navigate to security settings**  
    👉 Click here: https://github.com/GizzZmo/Security-Sentinel/settings/security_analysis
 
 2. **Locate the conflicting setup**  
@@ -28,12 +52,37 @@
    - Click "Yes" or "Confirm" when prompted
    - Status should change to "Disabled" or entry should disappear
 
+### Final Step: Re-run the Workflow
+
 5. **Re-run the workflow**  
    - Go to: https://github.com/GizzZmo/Security-Sentinel/actions
    - Find the failed "🔐 Security Scanning" workflow
    - Click **"Re-run all jobs"**
 
-## 🎯 Why This Error Occurs
+## 🎯 Why These Errors Occur
+
+### Issue 1: GitHub Actions Policy Restriction
+
+**Current State** (Blocking Workflows):
+```
+Repository Settings → Actions:
+├── ❌ Actions policy is TOO RESTRICTIVE
+│   └── Blocking: actions/*, github/codeql-action/*, etc.
+└── Result: Security scanning workflows cannot run
+```
+
+**Required State** (Working):
+```
+Repository Settings → Actions:
+├── ✅ Allow all actions OR allow specific actions:
+│   ├── actions/*
+│   ├── github/codeql-action/*
+│   ├── gitleaks/gitleaks-action/*
+│   └── trufflesecurity/trufflehog/*
+└── Result: Security scanning workflows can run
+```
+
+### Issue 2: CodeQL Default Setup Conflict (if applicable)
 
 **Current State** (Causing Conflict):
 ```
@@ -70,13 +119,21 @@ This repository includes comprehensive documentation for this issue:
 ## ❓ FAQ
 
 ### Why can't this be automated?
-GitHub repository security settings can only be modified through the web UI. No API or automation tool can disable the default Code Scanning setup.
+GitHub repository security and Actions policy settings can only be modified through the web UI. No API or automation tool can modify these settings programmatically.
 
-### Who can make this change?
-Anyone with **Admin** or **Write** access to the repository.
+### Which issue should I fix first?
+**Fix the GitHub Actions policy restriction first.** If actions are blocked, the workflows won't run regardless of other settings.
+
+### Who can make these changes?
+Anyone with **Admin** access to the repository. (Write access may not be sufficient for Actions policy changes.)
+
+### What happens if I only fix one issue?
+You need to fix **both** issues for the workflows to run:
+1. Actions policy must allow required actions
+2. Default CodeQL setup must be disabled (if enabled)
 
 ### Will I lose my security scan results?
-No! Existing CodeQL results will remain. The advanced configuration will continue providing even better scanning.
+No! Existing security scan results will remain. The advanced configuration will continue providing comprehensive scanning.
 
 ### Why not use the default setup instead?
 The advanced configuration in this repository is superior because it:
@@ -85,8 +142,15 @@ The advanced configuration in this repository is superior because it:
 - ✅ Provides matrix strategy for comprehensive coverage
 - ✅ Integrates with other security tools in the workflow
 
+### How do I know which actions to allow?
+The security workflow requires these actions:
+- `actions/*` - Official GitHub actions (checkout, setup-node, upload-artifact)
+- `github/codeql-action/*` - CodeQL security scanning
+- `gitleaks/gitleaks-action/*` - Secret scanning with GitLeaks
+- `trufflesecurity/trufflehog/*` - Secret scanning with TruffleHog
+
 ### Is this a one-time fix?
-Yes! Once disabled, the default setup won't re-enable automatically.
+Yes! Once configured correctly, these settings won't change automatically.
 
 ### What if I don't have permissions?
 Contact the repository owner (@GizzZmo) and share this document.
@@ -95,13 +159,34 @@ Contact the repository owner (@GizzZmo) and share this document.
 
 After making the changes, verify success:
 
-1. ✅ Default setup shows as "Disabled" in repository settings
-2. ✅ Security workflow runs without "configuration conflict" error
-3. ✅ Both JavaScript and C++ CodeQL analyses complete
-4. ✅ SARIF results upload to GitHub Security tab
-5. ✅ No dynamic CodeQL workflows appear in Actions tab
+1. ✅ **Actions policy** allows required actions (Settings → Actions)
+2. ✅ **Default setup** shows as "Disabled" in repository settings (if it was enabled)
+3. ✅ **Security workflow** runs without "policy" or "configuration conflict" errors
+4. ✅ **All jobs complete**: Dependency scan, CodeQL (JavaScript + C++), Secret scan, License scan
+5. ✅ **SARIF results** upload to GitHub Security tab successfully
 
 ## 🆘 Still Having Issues?
+
+### GitHub Actions policy blocking actions?
+
+**Error message**: "GitHub Actions policy is limiting the use of some required actions"
+
+**Solutions**:
+1. Go to Settings → Actions → Actions permissions
+2. Choose "Allow all actions and reusable workflows"
+3. OR add specific actions to the allow list:
+   - `actions/*`
+   - `github/codeql-action/*`
+   - `gitleaks/gitleaks-action/*`
+   - `trufflesecurity/trufflehog/*`
+4. Save and re-run the workflow
+
+### Organization policies overriding repository settings?
+
+If your repository is in an organization, organization-level policies may override repository settings:
+- Contact your organization administrator
+- Request an exception for security scanning actions
+- Provide this document as justification
 
 ### Can't find the "Default setup" option?
 
@@ -117,33 +202,36 @@ Try these alternatives:
 - Try in an incognito/private browser window
 - Verify you're looking at the correct repository
 
-### Error still appears?
+### Error still appears after making changes?
 
-1. Verify default setup is actually disabled (not just reconfigured)
-2. Check if organization policies are enforcing default setup
-3. Re-run the entire workflow (don't just retry failed jobs)
-4. Wait 5 minutes and try again
+1. **Verify Actions policy** is configured correctly (Settings → Actions)
+2. **Verify default setup** is actually disabled (not just reconfigured)
+3. **Check organization policies** - they may override repository settings
+4. **Re-run the entire workflow** (don't just retry failed jobs)
+5. **Wait 5 minutes** and try again - settings may take time to propagate
+6. **Check workflow logs** for specific error messages
 
 ## 📞 Support
 
 - **Repository Owner**: @GizzZmo
 - **Issues**: https://github.com/GizzZmo/Security-Sentinel/issues
 - **Discussions**: https://github.com/GizzZmo/Security-Sentinel/discussions
-- **GitHub Docs**: https://docs.github.com/en/code-security/code-scanning
+- **GitHub Docs - Actions Permissions**: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository
+- **GitHub Docs - Code Scanning**: https://docs.github.com/en/code-security/code-scanning
 
 ---
 
 ## 🎯 Action Summary
 
 **What you need to do:**
-1. Go to repository settings (link above)
-2. Disable "Default setup" for Code scanning
-3. Re-run the workflow
+1. **Fix Actions policy** - Allow required actions (Settings → Actions)
+2. **Fix CodeQL setup** - Disable "Default setup" for Code scanning (if enabled)
+3. **Re-run the workflow** - Verify it completes successfully
 
-**Estimated time:** 2-3 minutes  
-**Complexity:** Low (simple setting change)  
-**Impact:** Resolves workflow failures, maintains advanced security scanning
+**Estimated time:** 5 minutes  
+**Complexity:** Low (simple setting changes)  
+**Impact:** Resolves workflow failures, enables comprehensive security scanning
 
 ---
 
-**📌 Remember**: The code and workflows are correct. This is purely a repository settings issue that requires a simple manual change through GitHub's web interface.
+**📌 Remember**: The code and workflows are correct. These are repository settings issues that require simple manual changes through GitHub's web interface. **Fix the Actions policy first, then address the CodeQL setup if needed.**
