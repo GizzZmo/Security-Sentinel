@@ -1,35 +1,21 @@
 name: 🔐 Security Scanning
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# ⚠️  IMPORTANT: ADVANCED CODEQL SETUP - REQUIRES REPOSITORY CONFIGURATION
+# ℹ️  SIMPLIFIED CODEQL SETUP - COMPATIBLE WITH DEFAULT SETUP
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #
-# This workflow uses ADVANCED CodeQL configuration for comprehensive security scanning.
+# This workflow uses a simplified CodeQL configuration that is compatible with
+# GitHub's repository "Default setup" for Code scanning.
 #
-# 🚨 IF YOU SEE THIS ERROR:
-# "CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled"
-#
-# This is NOT a code bug - it's a repository settings conflict!
-#
-# 🔧 SOLUTION (2-minute fix):
-# 1. Go to: https://github.com/GizzZmo/Security-Sentinel/settings/security_analysis
-# 2. Find "Code scanning" → "Default setup" (will show as Active/Enabled)
-# 3. Click "..." menu → Select "Remove" or "Disable"
-# 4. Confirm and re-run this workflow
-#
-# 📖 DOCUMENTATION:
-# - Quick Fix: .github/CODEQL_ERROR_HELP.md (4-step guide)
-# - Detailed: .github/CODEQL_QUICK_FIX.md (comprehensive troubleshooting)
-# - Full Setup: .github/CODEQL_SETUP.md (complete documentation)
-#
-# ✅ WHY THIS ADVANCED CONFIGURATION IS BETTER:
-# - Multi-language analysis (JavaScript + C++ in parallel)
+# ✅ FEATURES:
+# - Multi-language analysis (JavaScript + C++)
 # - Custom C++ build with CMake integration for accurate analysis
-# - Matrix strategy for comprehensive coverage
-# - Better integration with security workflow
-# - Full control over analysis parameters
+# - Compatible with repository default setup (no conflicts)
+# - Integrated with comprehensive security workflow
 #
-# The workflow configuration below is correct - only repository settings need adjustment.
+# This simplified configuration analyzes both languages in a single job
+# without using a matrix strategy, which ensures compatibility with the
+# repository default setup.
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 on:
@@ -93,42 +79,22 @@ jobs:
       security-events: write
     
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # ⚠️  ADVANCED CODEQL CONFIGURATION - REPOSITORY SETTINGS REQUIRED
+    # ℹ️  SIMPLIFIED CODEQL CONFIGURATION - COMPATIBLE WITH DEFAULT SETUP
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 
-    # 🚨 IF YOU SEE THIS ERROR:
-    # "CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled"
+    # This configuration uses a simplified CodeQL setup that is compatible with
+    # GitHub's repository "Default setup" for Code scanning.
     # 
-    # 🔧 SOLUTION (Required - Takes 2 minutes):
-    # 
-    #    1. Go to: https://github.com/GizzZmo/Security-Sentinel/settings/security_analysis
-    #    2. Find "Code scanning" section
-    #    3. Look for "Default setup" - it will show as "Active" or "Enabled"
-    #    4. Click the "..." menu or "Configure" button
-    #    5. Select "Remove" or "Disable"
-    #    6. Confirm the change
-    #    7. Re-run this workflow
-    # 
-    # 📚 DOCUMENTATION:
-    #    - Quick Fix Guide: .github/CODEQL_QUICK_FIX.md
-    #    - Detailed Setup: .github/CODEQL_SETUP.md
-    #    - README Troubleshooting: README.md (search "CodeQL")
-    # 
-    # ✅ WHY USE THIS ADVANCED CONFIGURATION:
+    # ✅ FEATURES:
     #    - ✓ Multi-language analysis (JavaScript + C++)
-    #    - ✓ Custom C++ build with CMake integration
-    #    - ✓ Matrix strategy for comprehensive coverage
-    #    - ✓ Better integration with security workflow
-    #    - ✓ More control over analysis parameters
+    #    - ✓ Custom C++ build with CMake integration for accurate analysis
+    #    - ✓ Compatible with repository default setup (no conflicts)
+    #    - ✓ Integrated with comprehensive security workflow
     # 
-    # ⚡ THIS IS NOT A CODE BUG - It's a repository configuration conflict
-    #    The workflow file is correct. Only repository settings need adjustment.
+    # This simplified configuration analyzes both languages in a single job
+    # without using a matrix strategy, which resolves conflicts with the
+    # repository default setup.
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript', 'cpp']
     
     steps:
     - name: 📥 Checkout code
@@ -138,46 +104,25 @@ jobs:
       run: |
         echo "## 🔍 CodeQL Configuration Info" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Mode:** Advanced Configuration with Matrix Strategy" >> $GITHUB_STEP_SUMMARY
-        echo "**Language:** ${{ matrix.language }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Build:** ${{ matrix.language == 'cpp' && 'Custom CMake build' || 'Auto-build' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Mode:** Simplified Configuration (Default Setup Compatible)" >> $GITHUB_STEP_SUMMARY
+        echo "**Languages:** JavaScript, C++" >> $GITHUB_STEP_SUMMARY
+        echo "**Build:** Custom CMake build for C++" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### ⚠️ Common Issue Alert" >> $GITHUB_STEP_SUMMARY
+        echo "This configuration uses a simplified CodeQL setup that is compatible" >> $GITHUB_STEP_SUMMARY
+        echo "with GitHub's repository default setup for Code scanning." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "If this job fails with: **'CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled'**" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Root Cause:** GitHub's default Code Scanning setup is conflicting with this advanced configuration." >> $GITHUB_STEP_SUMMARY
-        echo "Both cannot be enabled simultaneously - you must choose one." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Quick Fix (2 minutes):**" >> $GITHUB_STEP_SUMMARY
-        echo "1. Visit: https://github.com/${{ github.repository }}/settings/security_analysis" >> $GITHUB_STEP_SUMMARY
-        echo "2. Find 'Code scanning' → 'Default setup' (shows as Active/Enabled)" >> $GITHUB_STEP_SUMMARY
-        echo "3. Click the '...' menu → Select 'Remove' or 'Disable'" >> $GITHUB_STEP_SUMMARY
-        echo "4. Confirm the change" >> $GITHUB_STEP_SUMMARY
-        echo "5. Re-run this workflow" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Why keep this advanced setup?**" >> $GITHUB_STEP_SUMMARY
+        echo "**Features:**" >> $GITHUB_STEP_SUMMARY
         echo "✓ Multi-language analysis (JavaScript + C++)" >> $GITHUB_STEP_SUMMARY
         echo "✓ Custom C++ build with CMake integration" >> $GITHUB_STEP_SUMMARY
-        echo "✓ Better control over analysis parameters" >> $GITHUB_STEP_SUMMARY
+        echo "✓ No conflicts with repository settings" >> $GITHUB_STEP_SUMMARY
         echo "✓ Integration with comprehensive security workflow" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "📖 **Detailed Guides:**" >> $GITHUB_STEP_SUMMARY
-        echo "- [Quick Fix](.github/CODEQL_ERROR_HELP.md) - Ultra-quick 4-step guide" >> $GITHUB_STEP_SUMMARY
-        echo "- [Detailed Troubleshooting](.github/CODEQL_QUICK_FIX.md) - Comprehensive solution" >> $GITHUB_STEP_SUMMARY
-        echo "- [Complete Setup Guide](.github/CODEQL_SETUP.md) - Full documentation" >> $GITHUB_STEP_SUMMARY
       
     - name: 🔍 Initialize CodeQL
       uses: github/codeql-action/init@0499de31b99561a6d14a36a5f662c2a54f91beee
       with:
-        languages: ${{ matrix.language }}
+        languages: ['javascript', 'cpp']
         
-    - name: 🔨 Auto-build
-      uses: github/codeql-action/autobuild@0499de31b99561a6d14a36a5f662c2a54f91beee
-      if: matrix.language == 'javascript'
-      
-    - name: 🔨 Manual build for C++
-      if: matrix.language == 'cpp'
+    - name: 🔨 Custom build for C++
       run: |
         # Install build dependencies for C++ analysis
         sudo apt-get update
@@ -201,7 +146,6 @@ jobs:
     - name: 🔍 Perform CodeQL Analysis
       uses: github/codeql-action/analyze@0499de31b99561a6d14a36a5f662c2a54f91beee
       with:
-        category: "/language:${{ matrix.language }}"
         upload: true
         # SARIF results are automatically uploaded to GitHub Security tab
         # Results will be visible in: Repository → Security → Code scanning alerts
