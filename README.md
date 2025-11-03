@@ -17,11 +17,11 @@
 ## 🚀 Build Status
 
 
-[![🌐 Web Interface CI](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/ci-web.yml/badge.svg)](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/ci-web.yml)
-[![🔨 C++ Build CI](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/ci-cpp.yml/badge.svg)](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/ci-cpp.yml)
-[![🔐 Security Scanning](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/security.yml/badge.svg)](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/security.yml)
-[![🧹 Code Quality](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/code-quality.yml/badge.svg)](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/code-quality.yml)
-[![🌐 Deploy to GitHub Pages](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/GizzZmo/security-sentinel-for-windows-11/actions/workflows/deploy-pages.yml)
+[![🌐 Web Interface CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml)
+[![🔨 C++ Build CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml)
+[![🔐 Security Scanning](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml)
+[![🧹 Code Quality](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml)
+[![🌐 Deploy to GitHub Pages](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml)
 
 > **A high-performance, cross-platform security monitoring application with AI-powered threat analysis, Go-accelerated core operations, and comprehensive self-protection capabilities.**
 
@@ -113,7 +113,7 @@
 ### ⚡ 5-Minute Setup
 
 1. **Get Gemini API Key** → [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. **Download Release** → [GitHub Releases](https://github.com/GizzZmo/security-sentinel-for-windows-11/releases)
+2. **Download Release** → [GitHub Releases](https://github.com/GizzZmo/Security-Sentinel/releases)
 3. **Configure** → Add API key to `config.ini`
 4. **Run as Admin** → Launch `SecuritySentinel.exe`
 
@@ -164,7 +164,7 @@
 #### Method 1: Pre-built Release (Recommended)
 ```bash
 # Download from GitHub releases
-https://github.com/GizzZmo/security-sentinel-for-windows-11/releases
+https://github.com/GizzZmo/Security-Sentinel/releases
 
 # Extract and configure
 cd SecuritySentinel
@@ -177,8 +177,8 @@ SecuritySentinel.exe
 #### Method 2: Build from Source
 ```bash
 # Prerequisites: Visual Studio 2019/2022, CMake 3.16+
-git clone https://github.com/GizzZmo/security-sentinel-for-windows-11.git
-cd security-sentinel-for-windows-11
+git clone https://github.com/GizzZmo/Security-Sentinel.git
+cd Security-Sentinel
 
 # Build
 mkdir build && cd build
@@ -221,8 +221,8 @@ Select option: _
 ### Quick Start
 ```bash
 # Clone and setup
-git clone https://github.com/GizzZmo/security-sentinel-for-windows-11.git
-cd security-sentinel-for-windows-11
+git clone https://github.com/GizzZmo/Security-Sentinel.git
+cd Security-Sentinel
 
 # Install dependencies
 npm install
@@ -429,8 +429,8 @@ set SECURITY_SENTINEL_CONFIG=C:\custom\path\config.ini
 We welcome contributions from the security community! Here's how you can help:
 
 ### Ways to Contribute
-- 🐛 **Bug Reports**: Found an issue? [Report it here](https://github.com/GizzZmo/security-sentinel-for-windows-11/issues)
-- 💡 **Feature Requests**: Have ideas? [Share them here](https://github.com/GizzZmo/security-sentinel-for-windows-11/issues)
+- 🐛 **Bug Reports**: Found an issue? [Report it here](https://github.com/GizzZmo/Security-Sentinel/issues)
+- 💡 **Feature Requests**: Have ideas? [Share them here](https://github.com/GizzZmo/Security-Sentinel/issues)
 - 📝 **Documentation**: Improve our guides and tutorials
 - 🔧 **Code**: Submit pull requests for bug fixes and features
 - 🧪 **Testing**: Help test new features and report results
@@ -439,8 +439,8 @@ We welcome contributions from the security community! Here's how you can help:
 ### Development Setup
 ```bash
 # Clone repository
-git clone https://github.com/GizzZmo/security-sentinel-for-windows-11.git
-cd security-sentinel-for-windows-11
+git clone https://github.com/GizzZmo/Security-Sentinel.git
+cd Security-Sentinel
 
 # C++ Development
 mkdir build && cd build
@@ -477,8 +477,8 @@ npm run dev
 |----------|-------------|------|
 | **📚 Documentation** | Comprehensive guides and tutorials | [WIKI](wiki/Home.md) |
 | **❓ Common Issues** | Quick solutions to frequent problems | [Troubleshooting](wiki/Common-Issues.md) |
-| **💬 Discussions** | Community Q&A and discussions | [GitHub Discussions](https://github.com/GizzZmo/security-sentinel-for-windows-11/discussions) |
-| **🐛 Bug Reports** | Report issues and track fixes | [GitHub Issues](https://github.com/GizzZmo/security-sentinel-for-windows-11/issues) |
+| **💬 Discussions** | Community Q&A and discussions | [GitHub Discussions](https://github.com/GizzZmo/Security-Sentinel/discussions) |
+| **🐛 Bug Reports** | Report issues and track fixes | [GitHub Issues](https://github.com/GizzZmo/Security-Sentinel/issues) |
 
 ### Community Guidelines
 - Be respectful and constructive
@@ -542,8 +542,8 @@ If workflows fail with permission errors:
 
 ### Getting Help
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/GizzZmo/security-sentinel-for-windows-11/issues)
-- 💬 **Questions**: [GitHub Discussions](https://github.com/GizzZmo/security-sentinel-for-windows-11/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/GizzZmo/Security-Sentinel/issues)
+- 💬 **Questions**: [GitHub Discussions](https://github.com/GizzZmo/Security-Sentinel/discussions)
 - 📖 **Documentation**: [Wiki](wiki/Home.md)
 
 ## 📄 License & Legal
@@ -572,7 +572,7 @@ The developers are not responsible for misuse of this software. Please use respo
 
 **Empowering users with intelligent, real-time security monitoring**
 
-[📖 Documentation](wiki/Home.md) • [🚀 Quick Start](wiki/Quick-Start.md) • [💾 Download](https://github.com/GizzZmo/security-sentinel-for-windows-11/releases) • [🤝 Contribute](wiki/Contributing-Guidelines.md)
+[📖 Documentation](wiki/Home.md) • [🚀 Quick Start](wiki/Quick-Start.md) • [💾 Download](https://github.com/GizzZmo/Security-Sentinel/releases) • [🤝 Contribute](wiki/Contributing-Guidelines.md)
 
 **Made with ❤️ by the security community**
 
