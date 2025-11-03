@@ -1,4 +1,6 @@
 name: Workflow Test
+permissions:
+  contents: read
 
 # This workflow tests that all other workflows can run successfully
 on:
