@@ -229,7 +229,7 @@ jobs:
         find . -name "checksums-*.sha256" -exec cat {} \; >> checksums.sha256
       
     - name: Create Release
-      uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048
+      uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe
       with:
         tag_name: ${{ github.ref_name || inputs.version }}
         name: Security Sentinel ${{ github.ref_name || inputs.version }}
