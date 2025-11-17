@@ -19,7 +19,7 @@ jobs:
       
     steps:
     - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       
     - name: Label based on changed files
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
@@ -81,7 +81,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       
     - name: Check PR title format
       run: |
@@ -133,7 +133,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       
     - name: Check PR size
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
@@ -191,7 +191,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       
     - name: Handle commands
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
