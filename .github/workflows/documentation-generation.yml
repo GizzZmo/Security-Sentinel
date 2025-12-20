@@ -13,6 +13,9 @@ on:
       - '**.md'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # Generate C++ API documentation with Doxygen
   cpp-docs:
