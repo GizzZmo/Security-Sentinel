@@ -11,6 +11,9 @@ on:
         default: '30'
         type: string
 
+permissions:
+  actions: read
+
 jobs:
   # List all artifacts
   list-artifacts:
@@ -79,6 +82,8 @@ jobs:
     name: 🧹 Cleanup Old Artifacts
     runs-on: ubuntu-latest
     needs: list-artifacts
+    permissions:
+      actions: write
     
     steps:
     - name: 🗑️ Delete old artifacts
