@@ -1,0 +1,520 @@
+name: 📚 Documentation Generation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'core-go/**'
+      - '**.ts'
+      - '**.tsx'
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Generate C++ API documentation with Doxygen
+  cpp-docs:
+    name: 📖 C++ API Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🔧 Install Doxygen
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+        
+    - name: 📝 Generate Doxyfile
+      run: |
+        cat > Doxyfile << 'EOF'
+        # Doxyfile for Security Sentinel C++ Documentation
+        
+        PROJECT_NAME           = "Security Sentinel C++ API"
+        PROJECT_NUMBER         = "v1.1.0"
+        PROJECT_BRIEF          = "Security monitoring application with AI-powered threat analysis"
+        
+        OUTPUT_DIRECTORY       = docs/cpp-api
+        CREATE_SUBDIRS         = YES
+        
+        INPUT                  = src/ include/
+        RECURSIVE              = YES
+        FILE_PATTERNS          = *.cpp *.h *.hpp
+        
+        EXTRACT_ALL            = YES
+        EXTRACT_PRIVATE        = NO
+        EXTRACT_STATIC         = YES
+        
+        GENERATE_HTML          = YES
+        HTML_OUTPUT            = html
+        HTML_COLORSTYLE        = LIGHT
+        
+        GENERATE_LATEX         = NO
+        
+        HAVE_DOT               = YES
+        DOT_NUM_THREADS        = 4
+        CALL_GRAPH             = YES
+        CALLER_GRAPH           = YES
+        
+        JAVADOC_AUTOBRIEF      = YES
+        QT_AUTOBRIEF           = YES
+        
+        WARN_IF_UNDOCUMENTED   = YES
+        WARN_NO_PARAMDOC       = YES
+        
+        EXCLUDE_PATTERNS       = */build/* */test/*
+        EOF
+        
+    - name: 🏗️ Generate C++ documentation
+      run: doxygen Doxyfile
+      continue-on-error: true
+      
+    - name: 📊 Documentation statistics
+      run: |
+        echo "# 📖 C++ Documentation Statistics" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -d "docs/cpp-api/html" ]; then
+          FILES=$(find docs/cpp-api/html -name "*.html" | wc -l)
+          SIZE=$(du -sh docs/cpp-api/html | cut -f1)
+          echo "- **HTML Files**: $FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Size**: $SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "✅ C++ API documentation generated successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ No documentation output generated" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 📤 Upload C++ docs
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: cpp-api-docs
+        path: docs/cpp-api/
+        retention-days: 90
+
+  # Generate TypeScript API documentation
+  typescript-docs:
+    name: 📖 TypeScript API Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
+      with:
+        node-version: '20.19.0'
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci
+      
+    - name: 🔧 Install TypeDoc
+      run: npm install --save-dev typedoc
+      
+    - name: 📝 Generate TypeDoc config
+      run: |
+        cat > typedoc.json << 'EOF'
+        {
+          "entryPoints": ["./"],
+          "entryPointStrategy": "expand",
+          "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**"],
+          "out": "docs/ts-api",
+          "plugin": [],
+          "name": "Security Sentinel TypeScript API",
+          "includeVersion": true,
+          "readme": "README.md",
+          "categorizeByGroup": true,
+          "defaultCategory": "Components",
+          "categoryOrder": ["Components", "Services", "Types", "*"],
+          "sort": ["source-order"],
+          "validation": {
+            "notExported": true,
+            "invalidLink": true,
+            "notDocumented": false
+          }
+        }
+        EOF
+        
+    - name: 🏗️ Generate TypeScript documentation
+      run: npx typedoc
+      continue-on-error: true
+      
+    - name: 📊 Documentation statistics
+      run: |
+        echo "# 📖 TypeScript Documentation Statistics" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -d "docs/ts-api" ]; then
+          FILES=$(find docs/ts-api -name "*.html" | wc -l)
+          SIZE=$(du -sh docs/ts-api | cut -f1)
+          echo "- **HTML Files**: $FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Size**: $SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "✅ TypeScript API documentation generated successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ No documentation output generated" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 📤 Upload TypeScript docs
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: ts-api-docs
+        path: docs/ts-api/
+        retention-days: 90
+
+  # Generate Go documentation
+  go-docs:
+    name: 📖 Go Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🐹 Setup Go
+      uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
+      with:
+        go-version: '1.24.x'
+        
+    - name: 🏗️ Generate Go documentation
+      working-directory: core-go
+      run: |
+        mkdir -p ../docs/go-api
+        go doc -all > ../docs/go-api/index.txt
+        
+        # Generate HTML documentation using godoc
+        echo "Installing godoc..."
+        go install golang.org/x/tools/cmd/godoc@latest
+        
+        # Create simple HTML wrapper
+        cat > ../docs/go-api/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Security Sentinel Go API Documentation</title>
+            <style>
+                body { font-family: monospace; padding: 20px; max-width: 1200px; margin: 0 auto; }
+                h1 { color: #00ADD8; }
+                pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+            </style>
+        </head>
+        <body>
+            <h1>Security Sentinel Go Core API</h1>
+            <p>Go modules for performance-critical operations</p>
+            <pre>
+        EOF
+        
+        cat ../docs/go-api/index.txt >> ../docs/go-api/index.html
+        
+        cat >> ../docs/go-api/index.html << 'EOF'
+            </pre>
+        </body>
+        </html>
+        EOF
+        
+    - name: 📊 Documentation statistics
+      run: |
+        echo "# 📖 Go Documentation Statistics" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -d "docs/go-api" ]; then
+          FILES=$(find docs/go-api -type f | wc -l)
+          SIZE=$(du -sh docs/go-api | cut -f1)
+          echo "- **Files**: $FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Size**: $SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Go documentation generated successfully" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 📤 Upload Go docs
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: go-api-docs
+        path: docs/go-api/
+        retention-days: 90
+
+  # Generate dependency graph
+  dependency-graph:
+    name: 📊 Dependency Graph
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
+      with:
+        node-version: '20.19.0'
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci
+      
+    - name: 📊 Generate dependency graph
+      run: |
+        mkdir -p docs/dependencies
+        
+        # NPM dependency tree
+        npm list --all > docs/dependencies/npm-tree.txt || true
+        
+        # Package.json visualization
+        cat > docs/dependencies/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Security Sentinel - Dependency Graph</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    padding: 20px;
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    background: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                h1 { color: #00ADD8; }
+                h2 { color: #61dafb; margin-top: 30px; }
+                .section { 
+                    background: #2a2a2a;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                    border-left: 4px solid #00ADD8;
+                }
+                pre {
+                    background: #1a1a1a;
+                    padding: 15px;
+                    border-radius: 5px;
+                    overflow-x: auto;
+                    font-size: 12px;
+                    line-height: 1.5;
+                }
+                .stats {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+                .stat-card {
+                    background: #2a2a2a;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border: 1px solid #3a3a3a;
+                }
+                .stat-value {
+                    font-size: 2em;
+                    font-weight: bold;
+                    color: #00ADD8;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>🔗 Security Sentinel Dependency Graph</h1>
+            <p>Comprehensive overview of project dependencies</p>
+        EOF
+        
+        # Add dependency count
+        PROD_DEPS=$(jq -r '.dependencies | length' package.json)
+        DEV_DEPS=$(jq -r '.devDependencies | length' package.json)
+        
+        cat >> docs/dependencies/index.html << EOF
+            <div class="stats">
+                <div class="stat-card">
+                    <div>Production Dependencies</div>
+                    <div class="stat-value">$PROD_DEPS</div>
+                </div>
+                <div class="stat-card">
+                    <div>Development Dependencies</div>
+                    <div class="stat-value">$DEV_DEPS</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📦 NPM Dependency Tree</h2>
+                <pre>$(cat docs/dependencies/npm-tree.txt | head -100)</pre>
+            </div>
+            
+            <div class="section">
+                <h2>🔧 Production Dependencies</h2>
+                <pre>$(jq -r '.dependencies | to_entries[] | "\(.key): \(.value)"' package.json)</pre>
+            </div>
+            
+            <div class="section">
+                <h2>🛠️ Development Dependencies</h2>
+                <pre>$(jq -r '.devDependencies | to_entries[] | "\(.key): \(.value)"' package.json)</pre>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+    - name: 📤 Upload dependency graph
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: dependency-graph
+        path: docs/dependencies/
+        retention-days: 90
+
+  # Consolidate all documentation
+  consolidate-docs:
+    name: 📚 Consolidate Documentation
+    runs-on: ubuntu-latest
+    needs: [cpp-docs, typescript-docs, go-docs, dependency-graph]
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 📥 Download all documentation
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      with:
+        path: all-docs/
+        
+    - name: 📋 Create documentation index
+      run: |
+        mkdir -p consolidated-docs
+        
+        cat > consolidated-docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Security Sentinel - Documentation Hub</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    padding: 40px 20px;
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 20px;
+                    padding: 40px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                }
+                h1 {
+                    color: #333;
+                    margin-bottom: 10px;
+                    font-size: 2.5em;
+                }
+                .subtitle {
+                    color: #666;
+                    margin-bottom: 40px;
+                    font-size: 1.2em;
+                }
+                .docs-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 25px;
+                    margin-top: 30px;
+                }
+                .doc-card {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 30px;
+                    border-radius: 15px;
+                    color: white;
+                    text-decoration: none;
+                    display: block;
+                    transition: transform 0.3s, box-shadow 0.3s;
+                }
+                .doc-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                }
+                .doc-card h2 {
+                    margin-bottom: 15px;
+                    font-size: 1.5em;
+                }
+                .doc-card p {
+                    opacity: 0.9;
+                    line-height: 1.6;
+                }
+                .icon {
+                    font-size: 2.5em;
+                    margin-bottom: 15px;
+                    display: block;
+                }
+                .footer {
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 2px solid #eee;
+                    text-align: center;
+                    color: #666;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📚 Security Sentinel Documentation Hub</h1>
+                <p class="subtitle">Comprehensive documentation for all components</p>
+                
+                <div class="docs-grid">
+                    <a href="cpp-api-docs/html/index.html" class="doc-card">
+                        <span class="icon">🔷</span>
+                        <h2>C++ API Documentation</h2>
+                        <p>Complete reference for Security Sentinel C++ codebase, including classes, methods, and system architecture.</p>
+                    </a>
+                    
+                    <a href="ts-api-docs/index.html" class="doc-card">
+                        <span class="icon">📘</span>
+                        <h2>TypeScript API Documentation</h2>
+                        <p>Web interface component documentation, React components, services, and type definitions.</p>
+                    </a>
+                    
+                    <a href="go-api-docs/index.html" class="doc-card">
+                        <span class="icon">🐹</span>
+                        <h2>Go Core Documentation</h2>
+                        <p>Go module documentation for performance-critical operations and file integrity checking.</p>
+                    </a>
+                    
+                    <a href="dependency-graph/index.html" class="doc-card">
+                        <span class="icon">🔗</span>
+                        <h2>Dependency Graph</h2>
+                        <p>Visual representation of project dependencies and their relationships.</p>
+                    </a>
+                    
+                    <a href="https://github.com/GizzZmo/Security-Sentinel/wiki" class="doc-card">
+                        <span class="icon">📖</span>
+                        <h2>User Guide & Wiki</h2>
+                        <p>User guides, tutorials, and comprehensive wiki documentation.</p>
+                    </a>
+                    
+                    <a href="https://github.com/GizzZmo/Security-Sentinel" class="doc-card">
+                        <span class="icon">💻</span>
+                        <h2>Source Code</h2>
+                        <p>Browse the source code on GitHub with full version history.</p>
+                    </a>
+                </div>
+                
+                <div class="footer">
+                    <p>Security Sentinel v1.1.0 | MIT License | Generated: $(date -u +"%Y-%m-%d %H:%M UTC")</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+        # Copy all docs to consolidated location
+        cp -r all-docs/* consolidated-docs/ || true
+        
+    - name: 📤 Upload consolidated documentation
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: complete-documentation
+        path: consolidated-docs/
+        retention-days: 90
+        
+    - name: 📊 Summary
+      run: |
+        echo "# 📚 Documentation Generation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ C++ API documentation generated" >> $GITHUB_STEP_SUMMARY
+        echo "✅ TypeScript API documentation generated" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Go documentation generated" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Dependency graph created" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Documentation hub consolidated" >> $GITHUB_STEP_SUMMARY

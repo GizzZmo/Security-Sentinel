@@ -1,0 +1,231 @@
+name: 🏅 Badge Generation System
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  # Generate dynamic badges
+  generate-badges:
+    name: 🏅 Generate Dynamic Badges
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🔍 Collect metrics
+      id: metrics
+      run: |
+        # Get version from CMakeLists.txt
+        VERSION=$(grep "project.*VERSION" CMakeLists.txt | sed -E 's/.*VERSION ([0-9.]+).*/\1/')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Count files
+        CPP_FILES=$(find src include -name "*.cpp" -o -name "*.h" 2>/dev/null | wc -l)
+        echo "cpp_files=$CPP_FILES" >> $GITHUB_OUTPUT
+        
+        GO_FILES=$(find core-go -name "*.go" 2>/dev/null | wc -l)
+        echo "go_files=$GO_FILES" >> $GITHUB_OUTPUT
+        
+        TS_FILES=$(find . -maxdepth 2 -name "*.ts" -o -name "*.tsx" 2>/dev/null | wc -l)
+        echo "ts_files=$TS_FILES" >> $GITHUB_OUTPUT
+        
+        # Count lines of code
+        CPP_LINES=$(find src include -name "*.cpp" -o -name "*.h" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+        echo "cpp_lines=$CPP_LINES" >> $GITHUB_OUTPUT
+        
+        GO_LINES=$(find core-go -name "*.go" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+        echo "go_lines=$GO_LINES" >> $GITHUB_OUTPUT
+        
+        TS_LINES=$(find . -maxdepth 2 -name "*.ts" -o -name "*.tsx" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+        echo "ts_lines=$TS_LINES" >> $GITHUB_OUTPUT
+        
+        # Total LOC
+        TOTAL_LOC=$((CPP_LINES + GO_LINES + TS_LINES))
+        echo "total_loc=$TOTAL_LOC" >> $GITHUB_OUTPUT
+        
+        # Format LOC for badge (K format)
+        if [ $TOTAL_LOC -gt 1000 ]; then
+          LOC_FORMATTED="$(echo "scale=1; $TOTAL_LOC/1000" | bc)K"
+        else
+          LOC_FORMATTED="$TOTAL_LOC"
+        fi
+        echo "loc_formatted=$LOC_FORMATTED" >> $GITHUB_OUTPUT
+        
+    - name: 📊 Generate badge data
+      run: |
+        mkdir -p badges
+        
+        # Create badge JSON for version
+        cat > badges/version.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "version",
+          "message": "v${{ steps.metrics.outputs.version }}",
+          "color": "blue"
+        }
+        EOF
+        
+        # Create badge JSON for lines of code
+        cat > badges/loc.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "lines of code",
+          "message": "${{ steps.metrics.outputs.loc_formatted }}",
+          "color": "informational"
+        }
+        EOF
+        
+        # Create badge JSON for C++ files
+        cat > badges/cpp.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "C++ files",
+          "message": "${{ steps.metrics.outputs.cpp_files }}",
+          "color": "orange"
+        }
+        EOF
+        
+        # Create badge JSON for Go files
+        cat > badges/go.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "Go files",
+          "message": "${{ steps.metrics.outputs.go_files }}",
+          "color": "00ADD8"
+        }
+        EOF
+        
+        # Create badge JSON for TypeScript files
+        cat > badges/typescript.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "TypeScript files",
+          "message": "${{ steps.metrics.outputs.ts_files }}",
+          "color": "3178c6"
+        }
+        EOF
+        
+        # Create README for badges
+        cat > badges/README.md << 'EOF'
+        # Security Sentinel Badges
+        
+        ## Usage
+        
+        Use these badge endpoints in your README:
+        
+        ### Version Badge
+        ```markdown
+        ![Version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/version.json)
+        ```
+        
+        ### Lines of Code
+        ```markdown
+        ![Lines of Code](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/loc.json)
+        ```
+        
+        ### C++ Files
+        ```markdown
+        ![C++ Files](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/cpp.json)
+        ```
+        
+        ### Go Files
+        ```markdown
+        ![Go Files](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/go.json)
+        ```
+        
+        ### TypeScript Files
+        ```markdown
+        ![TypeScript Files](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/typescript.json)
+        ```
+        
+        ## Static Badges
+        
+        The following badges are also available:
+        
+        - ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+        - ![Windows 11](https://img.shields.io/badge/Windows-11-0078d4.svg)
+        - ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
+        - ![C++17](https://img.shields.io/badge/C++-17-blue.svg)
+        - ![Go](https://img.shields.io/badge/Go-1.24-00ADD8.svg)
+        - ![React](https://img.shields.io/badge/React-19-61dafb.svg)
+        EOF
+        
+    - name: 📤 Upload badge artifacts
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: badges
+        path: badges/
+        retention-days: 365
+        
+    - name: 📊 Summary
+      run: |
+        echo "# 🏅 Badge Generation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Metrics" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: v${{ steps.metrics.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total LOC**: ${{ steps.metrics.outputs.total_loc }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **C++ Files**: ${{ steps.metrics.outputs.cpp_files }} (${{ steps.metrics.outputs.cpp_lines }} lines)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Go Files**: ${{ steps.metrics.outputs.go_files }} (${{ steps.metrics.outputs.go_lines }} lines)" >> $GITHUB_STEP_SUMMARY
+        echo "- **TypeScript Files**: ${{ steps.metrics.outputs.ts_files }} (${{ steps.metrics.outputs.ts_lines }} lines)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Badge data generated successfully" >> $GITHUB_STEP_SUMMARY
+
+  # Generate workflow status badges
+  workflow-badges:
+    name: 🔄 Workflow Status Badges
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 📋 Create workflow badge list
+      run: |
+        mkdir -p badges
+        
+        cat > badges/WORKFLOW_BADGES.md << 'EOF'
+        # Workflow Status Badges
+        
+        ## CI/CD Workflows
+        
+        ### Main CI Pipeline
+        [![CI/CD Pipeline](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci.yml)
+        
+        ### Component-Specific CI
+        - [![🌐 Web Interface CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml)
+        - [![🔨 C++ Build CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml)
+        
+        ### Quality & Security
+        - [![🔐 Security Scanning](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml)
+        - [![🧹 Code Quality](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml)
+        
+        ### Documentation
+        - [![📚 Documentation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/docs.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/docs.yml)
+        - [![🌐 Deploy to GitHub Pages](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml)
+        
+        ### Advanced Workflows
+        - [![🏗️ Build Matrix](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml)
+        - [![📦 Asset Management](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml)
+        - [![🏅 Badge Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml)
+        
+        ## Using in README
+        
+        Copy the badge markdown above into your README.md file.
+        EOF
+        
+        echo "Workflow badge list created"
+        cat badges/WORKFLOW_BADGES.md
+        
+    - name: 📤 Upload workflow badges
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: workflow-badges
+        path: badges/
+        retention-days: 365

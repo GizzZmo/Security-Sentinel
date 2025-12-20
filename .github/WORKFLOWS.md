@@ -428,6 +428,140 @@ Common issues and solutions:
 - [SARIF Integration Guide](../docs/SARIF_INTEGRATION.md) - Comprehensive guide to SARIF integration in this repository
 - [GitHub Pages](https://docs.github.com/en/pages)
 
+## 🏗️ Advanced Workflow System
+
+### New Advanced Workflows
+
+| Workflow | Trigger | Purpose | Status |
+|----------|---------|---------|--------|
+| 🏗️ [Build Matrix](.github/workflows/build-matrix.yml) | Push/PR | Multi-platform matrix builds (Win/Linux/macOS) | [![🏗️ Build Matrix](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml) |
+| 📦 [Asset Management](.github/workflows/asset-management.yml) | Release | Comprehensive asset packaging with checksums | [![📦 Asset Management](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml) |
+| 🏅 [Badge Generation](.github/workflows/badge-generation.yml) | Push/Schedule | Dynamic badge generation for metrics | [![🏅 Badge Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml) |
+| 📚 [Documentation Generation](.github/workflows/documentation-generation.yml) | Push | API docs for C++, TS, Go with dependency graphs | [![📚 Documentation Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/documentation-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/documentation-generation.yml) |
+| 🧹 [Artifact Cleanup](.github/workflows/artifact-cleanup.yml) | Weekly/Manual | Automated artifact lifecycle management | [![🧹 Artifact Cleanup](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/artifact-cleanup.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/artifact-cleanup.yml) |
+
+### 🏗️ Build Matrix System
+
+**Purpose**: Multi-platform build matrix with advanced caching and performance metrics.
+
+**Features**:
+- Parallel builds across Windows, Linux, and macOS
+- Debug and Release configuration support
+- Advanced CMake, Go, and NPM caching
+- Build statistics and performance tracking
+- Comprehensive artifact generation
+
+**Key Jobs**:
+1. **C++ Matrix Build** - Multi-platform C++ builds
+2. **Go Build** - Go module builds with coverage
+3. **Web Build** - Multi-version Node.js builds
+4. **Build Summary** - Consolidated build report
+
+### 📦 Asset Management System
+
+**Purpose**: Automated asset packaging with integrity verification.
+
+**Features**:
+- SHA-256 checksum generation
+- Release metadata in JSON format
+- Platform-specific installation guides
+- Comprehensive asset catalog
+- Source archive creation
+
+**Generated Assets**:
+- `METADATA.json` - Release information
+- `INSTALL.md` - Installation instructions
+- `ASSET_CATALOG.md` - Download directory
+- `SHA256SUMS.txt` - Checksums for verification
+- `security-sentinel-source-*.tar.gz` - Source archives
+
+### 🏅 Badge Generation System
+
+**Purpose**: Dynamic badge generation for project metrics.
+
+**Features**:
+- Real-time metrics (LOC, version, file counts)
+- Shields.io JSON endpoint format
+- Workflow status badges
+- Language-specific badges (C++, Go, TypeScript)
+
+**Generated Badges**:
+- `badges/version.json` - Current version
+- `badges/loc.json` - Lines of code
+- `badges/cpp.json` - C++ file count
+- `badges/go.json` - Go file count
+- `badges/typescript.json` - TypeScript file count
+
+**Usage**:
+```markdown
+![Version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/GizzZmo/Security-Sentinel/main/badges/version.json)
+```
+
+### 📚 Documentation Generation
+
+**Purpose**: Automated API documentation for all languages.
+
+**Features**:
+- **C++ Docs**: Doxygen with call graphs and class diagrams
+- **TypeScript Docs**: TypeDoc for React components
+- **Go Docs**: godoc-style documentation
+- **Dependency Graphs**: Visual dependency analysis
+- **Documentation Hub**: Centralized portal with beautiful UI
+
+**Generated Documentation**:
+- `docs/cpp-api/` - C++ API reference
+- `docs/ts-api/` - TypeScript API reference
+- `docs/go-api/` - Go module documentation
+- `docs/dependencies/` - Dependency visualization
+- `docs/index.html` - Documentation hub portal
+
+### 🧹 Artifact Cleanup
+
+**Purpose**: Automated artifact lifecycle management.
+
+**Features**:
+- Comprehensive artifact inventory
+- Configurable retention policies (default: 30 days)
+- Storage usage monitoring
+- Health checks for oversized artifacts
+- Automated cleanup scheduling
+
+**Monitoring**:
+- Total storage usage tracking
+- Large artifact detection (>500MB)
+- Storage limit warnings
+- Detailed cleanup reports
+
+## 📖 Comprehensive Documentation
+
+### Workflow Documentation Files
+
+| Document | Purpose | Link |
+|----------|---------|------|
+| **ADVANCED_WORKFLOWS.md** | Detailed guide to advanced workflow system | [View](../docs/ADVANCED_WORKFLOWS.md) |
+| **WORKFLOW_SUMMARY.md** | Quick reference for all workflows | [View](../docs/WORKFLOW_SUMMARY.md) |
+| **WORKFLOW_QUICKSTART.md** | Getting started guide for contributors | [View](../docs/WORKFLOW_QUICKSTART.md) |
+
+### Artifact Retention Policies
+
+| Artifact Type | Retention | Workflows |
+|--------------|-----------|-----------|
+| CI Builds | 14 days | ci.yml, build-matrix.yml |
+| Documentation | 90 days | documentation-generation.yml |
+| Release Assets | 90 days | release.yml, asset-management.yml |
+| Badges | 365 days | badge-generation.yml |
+| Checksums | 90 days | asset-management.yml |
+
+### Performance Metrics
+
+| Workflow | Average Duration | Parallelizable |
+|----------|------------------|----------------|
+| Build Matrix | 15-25 min | Yes (8+ jobs) |
+| Documentation Generation | 5-7 min | Yes (4 jobs) |
+| Asset Management | 3-5 min | Partial |
+| Badge Generation | 1-2 min | No |
+| Artifact Cleanup | 2-3 min | No |
+
 ---
 
-*This workflow system provides enterprise-grade CI/CD capabilities for the Security Sentinel project, ensuring code quality, security, and reliable deployments across all platforms.*
+*This workflow system provides enterprise-grade CI/CD capabilities for the Security Sentinel project, ensuring code quality, security, and reliable deployments across all platforms. The advanced workflow system adds comprehensive build automation, asset management, dynamic badges, and automated documentation generation.*

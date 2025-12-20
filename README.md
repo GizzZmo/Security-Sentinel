@@ -6,6 +6,9 @@
 <img width="1024" height="1024" alt="Gemini_Generated_Image_aj4os4aj4os4aj4o" src="https://github.com/user-attachments/assets/5a2960b1-0ae5-4b67-a431-a8c7e4363670" />
 
 
+## 📊 Project Status & Badges
+
+### Platform & Technology Stack
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078d4.svg)](https://www.microsoft.com/windows/)
 [![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://www.linux.org/)
@@ -14,14 +17,26 @@
 [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://reactjs.org/)
 [![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285f4.svg)](https://ai.google.dev/)
 
-## 🚀 Build Status
-
-
+### 🚀 CI/CD Status
+[![CI/CD Pipeline](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci.yml)
 [![🌐 Web Interface CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-web.yml)
 [![🔨 C++ Build CI](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/ci-cpp.yml)
+[![🏗️ Build Matrix](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/build-matrix.yml)
+
+### 🔐 Security & Quality
 [![🔐 Security Scanning](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/security.yml)
 [![🧹 Code Quality](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/code-quality.yml)
+[![🔍 PR Validation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/pr-validation.yml)
+
+### 📚 Documentation & Deployment
+[![📚 Documentation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/docs.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/docs.yml)
+[![📖 Documentation Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/documentation-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/documentation-generation.yml)
 [![🌐 Deploy to GitHub Pages](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/deploy-pages.yml)
+
+### 📦 Release & Assets
+[![📦 Asset Management](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/asset-management.yml)
+[![🏅 Badge Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml)
+[![Release](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/release.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/release.yml)
 
 > **A high-performance, cross-platform security monitoring application with AI-powered threat analysis, Go-accelerated core operations, and comprehensive self-protection capabilities.**
 

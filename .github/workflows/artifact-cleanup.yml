@@ -1,0 +1,197 @@
+name: 🧹 Artifact Cleanup & Management
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Keep artifacts newer than N days'
+        required: false
+        default: '30'
+        type: string
+
+permissions:
+  actions: read
+
+jobs:
+  # List all artifacts
+  list-artifacts:
+    name: 📋 List Artifacts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔍 Get artifact list
+      id: get-artifacts
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      with:
+        script: |
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100
+          });
+          
+          core.info(`Found ${artifacts.data.artifacts.length} artifacts`);
+          
+          // Group by workflow
+          const byWorkflow = {};
+          let totalSize = 0;
+          
+          for (const artifact of artifacts.data.artifacts) {
+            const workflow = artifact.workflow_run?.name || 'Unknown';
+            if (!byWorkflow[workflow]) {
+              byWorkflow[workflow] = {
+                count: 0,
+                size: 0,
+                artifacts: []
+              };
+            }
+            byWorkflow[workflow].count++;
+            byWorkflow[workflow].size += artifact.size_in_bytes;
+            byWorkflow[workflow].artifacts.push({
+              name: artifact.name,
+              created: artifact.created_at,
+              expired: artifact.expired,
+              size: artifact.size_in_bytes
+            });
+            totalSize += artifact.size_in_bytes;
+          }
+          
+          // Store summary
+          core.setOutput('total_count', artifacts.data.artifacts.length);
+          core.setOutput('total_size', totalSize);
+          core.setOutput('by_workflow', JSON.stringify(byWorkflow));
+          
+          return { artifacts: artifacts.data.artifacts.length, size: totalSize };
+          
+    - name: 📊 Generate artifact report
+      run: |
+        echo "# 📦 Artifact Management Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Overview" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Artifacts**: ${{ steps.get-artifacts.outputs.total_count }}" >> $GITHUB_STEP_SUMMARY
+        
+        TOTAL_MB=$(echo "scale=2; ${{ steps.get-artifacts.outputs.total_size }} / 1048576" | bc)
+        echo "- **Total Size**: ${TOTAL_MB} MB" >> $GITHUB_STEP_SUMMARY
+        echo "- **Scan Date**: $(date -u +"%Y-%m-%d %H:%M UTC")" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+  # Cleanup old artifacts
+  cleanup-artifacts:
+    name: 🧹 Cleanup Old Artifacts
+    runs-on: ubuntu-latest
+    needs: list-artifacts
+    permissions:
+      actions: write
+    
+    steps:
+    - name: 🗑️ Delete old artifacts
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      with:
+        script: |
+          const retentionDays = ${{ inputs.retention_days || 30 }};
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+          
+          core.info(`Deleting artifacts older than ${retentionDays} days (before ${cutoffDate.toISOString()})`);
+          
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100
+          });
+          
+          let deletedCount = 0;
+          let deletedSize = 0;
+          
+          for (const artifact of artifacts.data.artifacts) {
+            const createdDate = new Date(artifact.created_at);
+            
+            if (createdDate < cutoffDate && !artifact.expired) {
+              try {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+                
+                core.info(`Deleted: ${artifact.name} (${artifact.size_in_bytes} bytes)`);
+                deletedCount++;
+                deletedSize += artifact.size_in_bytes;
+              } catch (error) {
+                core.warning(`Failed to delete ${artifact.name}: ${error.message}`);
+              }
+            }
+          }
+          
+          core.setOutput('deleted_count', deletedCount);
+          core.setOutput('deleted_size', deletedSize);
+          core.info(`Cleanup complete: ${deletedCount} artifacts deleted`);
+          
+    - name: 📊 Cleanup summary
+      run: |
+        echo "## 🧹 Cleanup Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifacts Deleted**: ${{ steps.delete-old-artifacts.outputs.deleted_count || 0 }}" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.delete-old-artifacts.outputs.deleted_size }}" != "" ]; then
+          FREED_MB=$(echo "scale=2; ${{ steps.delete-old-artifacts.outputs.deleted_size }} / 1048576" | bc)
+          echo "- **Space Freed**: ${FREED_MB} MB" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Artifact cleanup completed" >> $GITHUB_STEP_SUMMARY
+
+  # Artifact health check
+  artifact-health:
+    name: 🏥 Artifact Health Check
+    runs-on: ubuntu-latest
+    needs: list-artifacts
+    
+    steps:
+    - name: 🔍 Check artifact health
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      with:
+        script: |
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100
+          });
+          
+          const issues = [];
+          let totalSize = 0;
+          
+          for (const artifact of artifacts.data.artifacts) {
+            totalSize += artifact.size_in_bytes;
+            
+            // Check for very large artifacts (>500MB)
+            if (artifact.size_in_bytes > 500 * 1024 * 1024) {
+              issues.push(`⚠️ Large artifact: ${artifact.name} (${(artifact.size_in_bytes / 1048576).toFixed(2)} MB)`);
+            }
+            
+            // Check for expired artifacts
+            if (artifact.expired) {
+              issues.push(`🗑️ Expired artifact still listed: ${artifact.name}`);
+            }
+          }
+          
+          // Check total storage usage (GitHub has 10GB limit for free tier)
+          const totalGB = totalSize / (1024 * 1024 * 1024);
+          if (totalGB > 8) {
+            issues.push(`⚠️ High storage usage: ${totalGB.toFixed(2)} GB (approaching 10GB limit)`);
+          }
+          
+          core.setOutput('issues', JSON.stringify(issues));
+          core.setOutput('total_size_gb', totalGB.toFixed(2));
+          
+    - name: 📊 Health report
+      run: |
+        echo "## 🏥 Artifact Health Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Storage Usage**: ${{ steps.artifact-health.outputs.total_size_gb || 0 }} GB" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Note: Would need to parse issues JSON in a real implementation
+        echo "Health check completed" >> $GITHUB_STEP_SUMMARY

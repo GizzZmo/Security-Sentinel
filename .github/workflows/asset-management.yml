@@ -1,0 +1,272 @@
+name: 📦 Asset Management System
+
+permissions:
+  contents: read
+
+on:
+  release:
+    types: [created, published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.2.0)'
+        required: true
+        type: string
+
+jobs:
+  # Generate comprehensive checksums
+  generate-checksums:
+    name: 🔐 Generate Asset Checksums
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 🔐 Generate checksums
+      run: |
+        mkdir -p checksums
+        
+        # Create comprehensive checksum file
+        cat > checksums/CHECKSUMS.md << 'EOF'
+        # Security Sentinel - Asset Checksums
+        
+        ## Release Information
+        - **Version**: ${{ github.ref_name || inputs.version }}
+        - **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        - **Commit**: ${{ github.sha }}
+        
+        ## SHA-256 Checksums
+        
+        Verify file integrity using:
+        ```bash
+        sha256sum -c SHA256SUMS.txt
+        ```
+        
+        ## File Hashes
+        
+        EOF
+        
+        # Generate checksums for source archives
+        echo "### Source Archives" >> checksums/CHECKSUMS.md
+        echo "" >> checksums/CHECKSUMS.md
+        
+        tar czf security-sentinel-source-${{ github.ref_name || inputs.version }}.tar.gz \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='build' \
+          --exclude='dist' \
+          --exclude='.github' \
+          --exclude='*.log' \
+          .
+          
+        sha256sum security-sentinel-source-*.tar.gz > checksums/SHA256SUMS.txt
+        sha256sum security-sentinel-source-*.tar.gz | \
+          awk '{print "- `" $2 "`: `" $1 "`"}' >> checksums/CHECKSUMS.md
+        
+    - name: 📤 Upload checksum artifacts
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: checksums
+        path: |
+          checksums/
+          security-sentinel-source-*.tar.gz
+        retention-days: 90
+
+  # Package assets with metadata
+  package-assets:
+    name: 📦 Package Release Assets
+    runs-on: ubuntu-latest
+    needs: generate-checksums
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      
+    - name: 📦 Create asset metadata
+      run: |
+        mkdir -p assets
+        
+        # Create comprehensive metadata file
+        cat > assets/METADATA.json << EOF
+        {
+          "version": "${{ github.ref_name || inputs.version }}",
+          "release_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "commit": "${{ github.sha }}",
+          "repository": "${{ github.repository }}",
+          "assets": {
+            "windows": {
+              "name": "security-sentinel-windows-${{ github.ref_name || inputs.version }}.zip",
+              "platform": "Windows 11/10",
+              "architecture": "x64",
+              "type": "executable"
+            },
+            "linux": {
+              "name": "security-sentinel-linux-${{ github.ref_name || inputs.version }}.tar.gz",
+              "platform": "Linux",
+              "architecture": "x64",
+              "type": "binary"
+            },
+            "web": {
+              "name": "security-sentinel-web-${{ github.ref_name || inputs.version }}.tar.gz",
+              "platform": "Cross-platform",
+              "type": "web-application"
+            }
+          },
+          "requirements": {
+            "windows": {
+              "os": "Windows 11 (21H2+) or Windows 10 (1909+)",
+              "privileges": "Administrator",
+              "memory": "4GB RAM recommended"
+            },
+            "linux": {
+              "os": "Ubuntu 20.04+ / Debian 11+ / CentOS 8+",
+              "privileges": "Root for system monitoring",
+              "dependencies": ["glibc 2.31+", "libstdc++6"]
+            }
+          }
+        }
+        EOF
+        
+        cat assets/METADATA.json
+        
+    - name: 📄 Create installation guide
+      run: |
+        cat > assets/INSTALL.md << 'EOF'
+        # Security Sentinel - Installation Guide
+        
+        ## Quick Installation
+        
+        ### Windows
+        
+        1. Download `security-sentinel-windows-*.zip`
+        2. Extract to your preferred location
+        3. Edit `config.ini` and add your Gemini API key
+        4. Run as Administrator:
+           ```cmd
+           SecuritySentinel.exe
+           ```
+        
+        ### Linux
+        
+        #### Using .deb package (Ubuntu/Debian):
+        ```bash
+        sudo dpkg -i security-sentinel_*_amd64.deb
+        sudo apt-get install -f
+        security-sentinel
+        ```
+        
+        #### Using tar.gz (any Linux):
+        ```bash
+        tar -xzf security-sentinel-linux-*.tar.gz
+        cd linux-binary
+        # Edit config.ini with your API key
+        sudo ./SecuritySentinel
+        ```
+        
+        ### Web Interface
+        
+        ```bash
+        # Extract web files
+        tar -xzf security-sentinel-web-*.tar.gz
+        
+        # Serve with any web server
+        python -m http.server 8080
+        # Or use nginx, apache, etc.
+        ```
+        
+        ## Configuration
+        
+        Edit `config.ini`:
+        ```ini
+        [gemini]
+        api_key=YOUR_GEMINI_API_KEY_HERE
+        
+        [monitoring]
+        refresh_interval=5
+        
+        [security]
+        auto_block=true
+        ```
+        
+        ## Verification
+        
+        Verify file integrity:
+        ```bash
+        sha256sum -c SHA256SUMS.txt
+        ```
+        
+        ## Support
+        
+        - Documentation: https://github.com/GizzZmo/Security-Sentinel/wiki
+        - Issues: https://github.com/GizzZmo/Security-Sentinel/issues
+        EOF
+        
+    - name: 📤 Upload asset metadata
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: asset-metadata
+        path: assets/
+        retention-days: 90
+
+  # Create asset catalog
+  create-catalog:
+    name: 📋 Create Asset Catalog
+    runs-on: ubuntu-latest
+    needs: [generate-checksums, package-assets]
+    
+    steps:
+    - name: 📥 Download artifacts
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      
+    - name: 📋 Generate asset catalog
+      run: |
+        cat > ASSET_CATALOG.md << 'EOF'
+        # Security Sentinel - Asset Catalog
+        
+        ## Release ${{ github.ref_name || inputs.version }}
+        
+        ### Available Downloads
+        
+        | Platform | File | Size | Type |
+        |----------|------|------|------|
+        | Windows 11/10 | security-sentinel-windows-*.zip | TBD | Native Application |
+        | Linux x64 | security-sentinel-linux-*.tar.gz | TBD | Binary Package |
+        | Debian/Ubuntu | security-sentinel_*_amd64.deb | TBD | DEB Package |
+        | Web Interface | security-sentinel-web-*.tar.gz | TBD | Web Application |
+        | Source Code | security-sentinel-source-*.tar.gz | TBD | Source Archive |
+        
+        ### Documentation
+        
+        - [Installation Guide](INSTALL.md)
+        - [Release Notes](https://github.com/GizzZmo/Security-Sentinel/releases)
+        - [Documentation](https://github.com/GizzZmo/Security-Sentinel/wiki)
+        
+        ### Checksums
+        
+        All files include SHA-256 checksums for verification. See [CHECKSUMS.md](CHECKSUMS.md) for details.
+        
+        ### License
+        
+        MIT License - See [LICENSE](https://github.com/GizzZmo/Security-Sentinel/blob/main/LICENSE)
+        EOF
+        
+        echo "Asset catalog created successfully"
+        cat ASSET_CATALOG.md
+        
+    - name: 📤 Upload catalog
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: asset-catalog
+        path: ASSET_CATALOG.md
+        retention-days: 90
+        
+    - name: 📊 Summary
+      run: |
+        echo "# 📦 Asset Management Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Asset catalog generated successfully" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Checksums created" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Metadata packaged" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version**: ${{ github.ref_name || inputs.version }}" >> $GITHUB_STEP_SUMMARY
