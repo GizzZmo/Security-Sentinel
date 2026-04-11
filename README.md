@@ -38,6 +38,36 @@
 [![🏅 Badge Generation](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/badge-generation.yml)
 [![Release](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/release.yml/badge.svg)](https://github.com/GizzZmo/Security-Sentinel/actions/workflows/release.yml)
 
+---
+
+## 💗 Vital Signs
+
+<div align="center">
+
+| GitHub Stats | Top Languages |
+|:---:|:---:|
+| [![GizzZmo's GitHub Stats](https://github-readme-stats.vercel.app/api?username=GizzZmo&show_icons=true&theme=dark&hide_border=true&count_private=true)](https://github.com/GizzZmo) | [![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=GizzZmo&layout=compact&theme=dark&hide_border=true)](https://github.com/GizzZmo) |
+
+</div>
+
+## 📈 Performance Metrics
+
+<div align="center">
+
+[![GitHub Streak](https://streak-stats.demolab.com/?user=GizzZmo&theme=dark&hide_border=true)](https://github.com/GizzZmo)
+
+</div>
+
+## 🌐 Language Analytics
+
+<div align="center">
+
+[![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=GizzZmo&langs_count=10&layout=compact&theme=dark&hide_border=true&card_width=600)](https://github.com/GizzZmo)
+
+</div>
+
+---
+
 > **A high-performance, cross-platform security monitoring application with AI-powered threat analysis, Go-accelerated core operations, and comprehensive self-protection capabilities.**
 
 ## 🎯 **New in Version 1.1**: Performance & Security Enhancements
@@ -51,7 +81,7 @@
 
 *[📖 View Full Enhancement Documentation](docs/ENHANCEMENTS.md) | [🚀 Quick Setup Guide](docs/QUICK_SETUP.md)*
 
-![Security Sentinel Dashboard](https://via.placeholder.com/800x400/1f2937/ffffff?text=Security+Sentinel+Dashboard)
+![Security Sentinel Dashboard](https://github-readme-stats.vercel.app/api/pin/?username=GizzZmo&repo=Security-Sentinel&theme=dark&hide_border=true)
 
 ## 🌟 Core Features
 
