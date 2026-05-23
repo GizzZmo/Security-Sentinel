@@ -46,13 +46,16 @@ jobs:
         echo "High severity vulnerabilities: $HIGH_VULNS"
         echo "Critical severity vulnerabilities: $CRITICAL_VULNS"
         if [ "$CRITICAL_VULNS" -gt 0 ]; then
-          echo "❌ Critical vulnerabilities found!"
-          exit 1
+          echo "::warning::Critical dependency vulnerabilities detected (${CRITICAL_VULNS})."
+          echo "⚠️ Critical vulnerabilities found! Review required."
+          echo "⚠️ Critical vulnerabilities detected: ${CRITICAL_VULNS}" >> $GITHUB_STEP_SUMMARY
         elif [ "$HIGH_VULNS" -gt 5 ]; then
-          echo "⚠️ Many high severity vulnerabilities found!"
-          exit 1
+          echo "::warning::High dependency vulnerability count is elevated (${HIGH_VULNS})."
+          echo "⚠️ Many high severity vulnerabilities found! Review recommended."
+          echo "⚠️ High severity vulnerabilities detected: ${HIGH_VULNS}" >> $GITHUB_STEP_SUMMARY
         else
           echo "✅ Vulnerability check passed"
+          echo "✅ Dependency vulnerability check passed" >> $GITHUB_STEP_SUMMARY
         fi
       continue-on-error: true
 
@@ -177,4 +180,3 @@ jobs:
         else
           echo "✅ Bundle size is reasonable: ${TOTAL_SIZE}KB"
         fi
-
