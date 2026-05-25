@@ -23,7 +23,7 @@ jobs:
     steps:
     - name: 🔍 Get artifact list
       id: get-artifacts
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
       with:
         script: |
           const artifacts = await github.rest.actions.listArtifactsForRepo({
@@ -87,7 +87,7 @@ jobs:
     
     steps:
     - name: 🗑️ Delete old artifacts
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
       with:
         script: |
           const retentionDays = ${{ inputs.retention_days || 30 }};
@@ -151,7 +151,7 @@ jobs:
     
     steps:
     - name: 🔍 Check artifact health
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
       with:
         script: |
           const artifacts = await github.rest.actions.listArtifactsForRepo({
