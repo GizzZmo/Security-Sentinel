@@ -125,9 +125,12 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
 
-    - name: Setup Ninja (Windows)
+    - name: Ensure Ninja is available (Windows)
       if: matrix.os == 'windows-latest'
-      run: choco install ninja --yes --no-progress
+      run: |
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
       
     - name: Build Windows application
       if: matrix.os == 'windows-latest'
