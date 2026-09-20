@@ -59,6 +59,7 @@ jobs:
       run: choco install ninja --yes --no-progress
       
     - name: Configure CMake
+      if: runner.os == 'Windows'
       run: cmake -S . -B build -G "Ninja Multi-Config"
         
     - name: Build Debug
