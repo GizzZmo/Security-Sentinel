@@ -30,14 +30,14 @@ jobs:
 
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: cmake -S . -B build -A x64
+      run: cmake -S . -B build-${{ matrix.config }} -A x64
 
     - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+      run: cmake -S . -B build-${{ matrix.config }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
 
     - name: 🔨 Build
-      run: cmake --build build --config ${{ matrix.config }} --parallel 4
+      run: cmake --build build-${{ matrix.config }} --config ${{ matrix.config }} --parallel 4
       continue-on-error: ${{ runner.os != 'Windows' }}
 
     - name: 📊 Build Statistics
@@ -46,12 +46,12 @@ jobs:
         echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Configuration**: ${{ matrix.config }}" >> $GITHUB_STEP_SUMMARY
         if [ "$RUNNER_OS" == "Windows" ]; then
-          if [ -d "build/bin/${{ matrix.config }}" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin/${{ matrix.config }} | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          if [ -d "build-${{ matrix.config }}/bin/${{ matrix.config }}" ]; then
+            echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin/${{ matrix.config }} | cut -f1)" >> $GITHUB_STEP_SUMMARY
           fi
         else
-          if [ -d "build/bin" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
+          if [ -d "build-${{ matrix.config }}/bin" ]; then
+            echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
           fi
         fi
       shell: bash
@@ -63,8 +63,8 @@ jobs:
       with:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
-          build/bin/**/*
-          build/${{ matrix.config }}/**/*
+          build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
         if-no-files-found: warn
 
