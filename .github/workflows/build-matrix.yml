@@ -40,7 +40,7 @@ jobs:
 
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+      run: cmake -S . -B build -A x64
 
     - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
