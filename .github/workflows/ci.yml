@@ -70,9 +70,11 @@ jobs:
       run: cmake -S . -B build -G "Ninja Multi-Config"
 
     - name: Build Debug
+      if: runner.os == 'Windows'
       run: cmake --build build --config Debug
       
     - name: Build Release
+      if: runner.os == 'Windows'
       run: cmake --build build --config Release
       
     - name: Upload Windows artifacts
