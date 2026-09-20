@@ -40,21 +40,38 @@ jobs:
       run: cmake --build build-${{ matrix.config }} --config ${{ matrix.config }} --parallel 4
       continue-on-error: ${{ runner.os != 'Windows' }}
 
-    - name: 📊 Build Statistics
+    - name: 📊 Build Statistics (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **Configuration**: ${{ matrix.config }}" >> $env:GITHUB_STEP_SUMMARY
+
+        $candidatePaths = @(
+          "build-${{ matrix.config }}/bin/${{ matrix.config }}",
+          "build-${{ matrix.config }}/bin"
+        )
+
+        foreach ($path in $candidatePaths) {
+          if (Test-Path $path) {
+            $sizeBytes = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            if ($null -eq $sizeBytes) { $sizeBytes = 0 }
+            $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
+            echo "- **Binary Size**: ${sizeMB} MB" >> $env:GITHUB_STEP_SUMMARY
+            break
+          }
+        }
+      shell: pwsh
+      continue-on-error: true
+
+    - name: 📊 Build Statistics (Non-Windows)
+      if: runner.os != 'Windows'
       run: |
         echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $GITHUB_STEP_SUMMARY
         echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Configuration**: ${{ matrix.config }}" >> $GITHUB_STEP_SUMMARY
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          if [ -d "build-${{ matrix.config }}/bin/${{ matrix.config }}" ]; then
-            echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin/${{ matrix.config }} | cut -f1)" >> $GITHUB_STEP_SUMMARY
-          elif [ -d "build-${{ matrix.config }}/bin" ]; then
-            echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin | cut -f1)" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          if [ -d "build-${{ matrix.config }}/bin" ]; then
-            echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
-          fi
+        if [ -d "build-${{ matrix.config }}/bin" ]; then
+          echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
       continue-on-error: true
