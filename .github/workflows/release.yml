@@ -128,10 +128,8 @@ jobs:
     - name: Build Windows application
       if: matrix.os == 'windows-latest'
       run: |
-        mkdir build
-        cd build
-        cmake .. -G "Visual Studio 17 2022" -A x64
-        cmake --build . --config Release
+        cmake -S . -B build -A x64
+        cmake --build build --config Release
         
     - name: Package Windows application
       if: matrix.os == 'windows-latest'
@@ -316,4 +314,3 @@ jobs:
           For detailed installation instructions, see [Installation Guide](https://github.com/GizzZmo/Security-Sentinel/wiki/Installation-Guide)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

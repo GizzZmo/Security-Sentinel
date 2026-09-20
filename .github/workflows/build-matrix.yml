@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 env:
-  CMAKE_VERSION: '3.25.0'
   NODE_VERSION: '20.19.0'
   GO_VERSION: '1.24.x'
 
@@ -28,21 +27,23 @@ jobs:
 
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      with:
-        cmakeVersion: ${{ env.CMAKE_VERSION }}
 
     - name: 📦 Cache CMake build
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
-          build/
           ~/.cmake/
         key: ${{ runner.os }}-cmake-${{ matrix.config }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
         restore-keys: |
           ${{ runner.os }}-cmake-${{ matrix.config }}-
           ${{ runner.os }}-cmake-
 
-    - name: 🏗️ Configure CMake
+    - name: 🏗️ Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+    - name: 🏗️ Configure CMake (Non-Windows)
+      if: runner.os != 'Windows'
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
 
     - name: 🔨 Build
