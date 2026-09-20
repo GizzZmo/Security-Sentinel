@@ -26,6 +26,10 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+    - name: 🛠️ Setup MSBuild
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
+
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
       with:
@@ -42,7 +46,12 @@ jobs:
           ${{ runner.os }}-cmake-${{ matrix.config }}-
           ${{ runner.os }}-cmake-
 
-    - name: 🏗️ Configure CMake
+    - name: 🏗️ Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: cmake -S . -B build -A x64
+
+    - name: 🏗️ Configure CMake (Non-Windows)
+      if: runner.os != 'Windows'
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
 
     - name: 🔨 Build
