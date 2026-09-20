@@ -30,7 +30,7 @@ jobs:
 
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: cmake -S . -B build-${{ matrix.config }} -A x64
+      run: cmake -S . -B build-${{ matrix.config }}
 
     - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
@@ -83,6 +83,7 @@ jobs:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
           build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
         if-no-files-found: warn
 
@@ -93,6 +94,7 @@ jobs:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
           build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
         if-no-files-found: warn
 

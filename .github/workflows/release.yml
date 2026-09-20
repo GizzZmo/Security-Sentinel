@@ -128,7 +128,7 @@ jobs:
     - name: Build Windows application
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -S . -B build -A x64
+        cmake -S . -B build
         cmake --build build --config Release
         
     - name: Package Windows application
