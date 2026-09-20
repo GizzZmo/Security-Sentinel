@@ -55,7 +55,7 @@ jobs:
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
       
     - name: Configure CMake
-      run: cmake -S . -B build
+      run: cmake -S . -B build -G "Ninja Multi-Config"
         
     - name: Build Debug
       run: cmake --build build --config Debug

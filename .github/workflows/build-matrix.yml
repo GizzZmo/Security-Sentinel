@@ -30,7 +30,7 @@ jobs:
 
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: cmake -S . -B build-${{ matrix.config }}
+      run: cmake -S . -B build-${{ matrix.config }} -G "Ninja Multi-Config"
 
     - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
@@ -82,6 +82,7 @@ jobs:
       with:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
+          build-${{ matrix.config }}/bin/${{ matrix.config }}/**/*
           build-${{ matrix.config }}/bin/**/*
           build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
