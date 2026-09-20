@@ -28,6 +28,10 @@ jobs:
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
 
+    - name: 🧰 Setup Ninja (Windows)
+      if: runner.os == 'Windows'
+      run: choco install ninja --yes --no-progress
+
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
       run: cmake -S . -B build-${{ matrix.config }} -G "Ninja Multi-Config"
