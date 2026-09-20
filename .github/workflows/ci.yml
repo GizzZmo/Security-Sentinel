@@ -60,6 +60,10 @@ jobs:
         if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
           choco install ninja --yes --no-progress
         }
+
+    - name: Setup MSVC compiler environment
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
       
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'

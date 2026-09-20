@@ -131,6 +131,10 @@ jobs:
         if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
           choco install ninja --yes --no-progress
         }
+
+    - name: Setup MSVC compiler environment (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
       
     - name: Build Windows application
       if: matrix.os == 'windows-latest'

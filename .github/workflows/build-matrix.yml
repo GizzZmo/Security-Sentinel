@@ -28,6 +28,10 @@ jobs:
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
 
+    - name: 🛠️ Setup MSVC compiler environment (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: 🧰 Ensure Ninja is available (Windows)
       if: runner.os == 'Windows'
       run: |
