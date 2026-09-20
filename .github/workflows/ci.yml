@@ -69,10 +69,6 @@ jobs:
       if: runner.os == 'Windows'
       run: cmake -S . -B build -G "Ninja Multi-Config"
 
-    - name: Configure CMake (Non-Windows)
-      if: runner.os != 'Windows'
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-        
     - name: Build Debug
       run: cmake --build build --config Debug
       
