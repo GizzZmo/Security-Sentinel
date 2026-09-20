@@ -154,7 +154,6 @@ Semgrep performs pattern-based security scanning for C++ code.
       p/security-audit
       p/secrets
       p/cwe-top-25
-    generateSarif: "1"
 
 - name: 📤 Upload SARIF file to GitHub Security
   uses: github/codeql-action/upload-sarif@latest
@@ -162,6 +161,8 @@ Semgrep performs pattern-based security scanning for C++ code.
     sarif_file: semgrep.sarif
     category: semgrep
 ```
+
+The Semgrep Action writes `semgrep.sarif`, which is then uploaded in the next step.
 
 **Findings Location:** Repository → Security → Code scanning alerts → Filter by "semgrep"
 

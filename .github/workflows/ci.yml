@@ -53,10 +53,25 @@ jobs:
       
     - name: Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      
-    - name: Configure CMake
+
+    - name: Ensure Ninja is available
+      if: runner.os == 'Windows'
       run: |
-        cmake -S . -B build -A x64
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
+
+    - name: Setup MSVC compiler environment
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: cmake -S . -B build -G "Ninja Multi-Config"
+
+    - name: Configure CMake (Non-Windows)
+      if: runner.os != 'Windows'
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
         
     - name: Build Debug
       run: cmake --build build --config Debug

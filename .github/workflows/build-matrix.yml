@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 env:
-  CMAKE_VERSION: '3.25.0'
   NODE_VERSION: '20.19.0'
   GO_VERSION: '1.24.x'
 
@@ -32,57 +31,86 @@ jobs:
 
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      with:
-        cmakeVersion: ${{ env.CMAKE_VERSION }}
 
-    - name: 📦 Cache CMake build
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-      with:
-        path: |
-          build/
-          ~/.cmake/
-        key: ${{ runner.os }}-cmake-${{ matrix.config }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-        restore-keys: |
-          ${{ runner.os }}-cmake-${{ matrix.config }}-
-          ${{ runner.os }}-cmake-
+    - name: 🛠️ Setup MSVC compiler environment (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: 🧰 Ensure Ninja is available (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
 
     - name: 🏗️ Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: cmake -S . -B build -A x64
+      run: cmake -S . -B build-${{ matrix.config }} -G "Ninja Multi-Config"
 
     - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+      run: cmake -S . -B build-${{ matrix.config }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
 
     - name: 🔨 Build
-      run: cmake --build build --config ${{ matrix.config }} --parallel 4
+      run: cmake --build build-${{ matrix.config }} --config ${{ matrix.config }} --parallel 4
       continue-on-error: ${{ runner.os != 'Windows' }}
 
-    - name: 📊 Build Statistics
+    - name: 📊 Build Statistics (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **Configuration**: ${{ matrix.config }}" >> $env:GITHUB_STEP_SUMMARY
+
+        $candidatePaths = @(
+          "build-${{ matrix.config }}/bin/${{ matrix.config }}",
+          "build-${{ matrix.config }}/bin"
+        )
+
+        foreach ($path in $candidatePaths) {
+          if (Test-Path $path) {
+            $sizeBytes = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            if ($null -eq $sizeBytes) { $sizeBytes = 0 }
+            $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
+            echo "- **Binary Size**: ${sizeMB} MB" >> $env:GITHUB_STEP_SUMMARY
+            break
+          }
+        }
+      shell: pwsh
+      continue-on-error: true
+
+    - name: 📊 Build Statistics (Non-Windows)
+      if: runner.os != 'Windows'
       run: |
         echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $GITHUB_STEP_SUMMARY
         echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Configuration**: ${{ matrix.config }}" >> $GITHUB_STEP_SUMMARY
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          if [ -d "build/bin/${{ matrix.config }}" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin/${{ matrix.config }} | cut -f1)" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          if [ -d "build/bin" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
-          fi
+        if [ -d "build-${{ matrix.config }}/bin" ]; then
+          echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
       continue-on-error: true
 
-    - name: 📤 Upload build artifacts
-      if: runner.os == 'Windows' || matrix.config == 'Release'
+    - name: 📤 Upload Windows build artifacts
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
-          build/bin/**/*
-          build/${{ matrix.config }}/**/*
+          build-${{ matrix.config }}/bin/${{ matrix.config }}/**/*
+          build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
+        retention-days: 14
+        if-no-files-found: warn
+
+    - name: 📤 Upload non-Windows release artifacts
+      if: runner.os != 'Windows' && matrix.config == 'Release'
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: cpp-${{ matrix.os }}-${{ matrix.config }}
+        path: |
+          build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
         if-no-files-found: warn
 
