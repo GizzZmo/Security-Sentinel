@@ -1,30 +1,11 @@
 name: 🔐 Security Scanning
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# ℹ️  SIMPLIFIED CODEQL SETUP - COMPATIBLE WITH DEFAULT SETUP
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#
-# This workflow uses a simplified CodeQL configuration that is compatible with
-# GitHub's repository "Default setup" for Code scanning.
-#
-# ✅ FEATURES:
-# - Multi-language analysis (JavaScript + C++)
-# - Custom C++ build with CMake integration for accurate analysis
-# - Compatible with repository default setup (no conflicts)
-# - Integrated with comprehensive security workflow
-#
-# This simplified configuration analyzes both languages in a single job
-# without using a matrix strategy, which ensures compatibility with the
-# repository default setup.
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
   schedule:
-    # Run weekly security scans on Sundays at 2 AM UTC
     - cron: '0 2 * * 0'
 
 permissions:
@@ -34,28 +15,26 @@ jobs:
   dependency-scan:
     name: 📦 Dependency Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      
+
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
       with:
         node-version: '20.x'
         cache: 'npm'
-        
+
     - name: 📦 Install dependencies
       run: npm ci
-      
+
     - name: 🔍 Run npm audit
       run: |
         echo "### NPM Security Audit 📊" >> $GITHUB_STEP_SUMMARY
         npm audit --audit-level moderate --json > audit-report.json || true
-        
-        # Parse and display results
+
         if [ -s audit-report.json ]; then
-          # Basic parsing without jq for compatibility
           vulnerabilities=$(grep -o '"vulnerabilities":{[^}]*}' audit-report.json | head -1 || echo "Unable to parse vulnerabilities")
           echo "**Vulnerabilities found:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -64,7 +43,7 @@ jobs:
         else
           echo "✅ No vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
         fi
-        
+
     - name: 📤 Upload audit report
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
@@ -73,101 +52,21 @@ jobs:
         retention-days: 30
       if: always()
 
-  codeql-analysis:
-    name: 🔍 CodeQL Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # ℹ️  SIMPLIFIED CODEQL CONFIGURATION - COMPATIBLE WITH DEFAULT SETUP
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 
-    # This configuration uses a simplified CodeQL setup that is compatible with
-    # GitHub's repository "Default setup" for Code scanning.
-    # 
-    # ✅ FEATURES:
-    #    - ✓ Multi-language analysis (JavaScript + C++)
-    #    - ✓ Custom C++ build with CMake integration for accurate analysis
-    #    - ✓ Compatible with repository default setup (no conflicts)
-    #    - ✓ Integrated with comprehensive security workflow
-    # 
-    # This simplified configuration analyzes both languages in a single job
-    # without using a matrix strategy, which resolves conflicts with the
-    # repository default setup.
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-    
-    - name: ℹ️ Configuration Info
-      run: |
-        echo "## 🔍 CodeQL Configuration Info" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Mode:** Simplified Configuration (Default Setup Compatible)" >> $GITHUB_STEP_SUMMARY
-        echo "**Languages:** JavaScript, C++" >> $GITHUB_STEP_SUMMARY
-        echo "**Build:** Custom CMake build for C++" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "This configuration uses a simplified CodeQL setup that is compatible" >> $GITHUB_STEP_SUMMARY
-        echo "with GitHub's repository default setup for Code scanning." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Features:**" >> $GITHUB_STEP_SUMMARY
-        echo "✓ Multi-language analysis (JavaScript + C++)" >> $GITHUB_STEP_SUMMARY
-        echo "✓ Custom C++ build with CMake integration" >> $GITHUB_STEP_SUMMARY
-        echo "✓ No conflicts with repository settings" >> $GITHUB_STEP_SUMMARY
-        echo "✓ Integration with comprehensive security workflow" >> $GITHUB_STEP_SUMMARY
-      
-    - name: 🔍 Initialize CodeQL
-      uses: github/codeql-action/init@0499de31b99561a6d14a36a5f662c2a54f91beee
-      with:
-        languages: ['javascript', 'cpp']
-        
-    - name: 🔨 Custom build for C++
-      run: |
-        # Install build dependencies for C++ analysis
-        sudo apt-get update
-        sudo apt-get install -y cmake build-essential
-        
-        # Configure and build
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Debug
-        make -j$(nproc)
-        
-        # Verify the build was successful
-        if [ -f "bin/SecuritySentinel" ]; then
-          echo "✅ C++ build successful"
-          ls -la bin/
-        else
-          echo "❌ C++ build failed - executable not found"
-          exit 1
-        fi
-        
-    - name: 🔍 Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@0499de31b99561a6d14a36a5f662c2a54f91beee
-      with:
-        upload: true
-        # SARIF results are automatically uploaded to GitHub Security tab
-        # Results will be visible in: Repository → Security → Code scanning alerts
-
   secret-scan:
     name: 🔒 Secret Scanning
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       with:
-        fetch-depth: 0  # Full history for better secret detection
-        
+        fetch-depth: 0
+
     - name: 🔍 Run GitLeaks
       uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: 🔍 Run TruffleHog
       uses: trufflesecurity/trufflehog@f1ccb3979760ac13b571361ec2a2c401b9b864c6
       with:
@@ -180,20 +79,20 @@ jobs:
   license-scan:
     name: 📄 License Compliance Scan
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      
+
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
       with:
         node-version: '20.x'
         cache: 'npm'
-        
+
     - name: 📦 Install dependencies
       run: npm ci
-      
+
     - name: 📄 Check licenses
       run: |
         npx license-checker --summary > license-summary.txt
@@ -201,7 +100,7 @@ jobs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         cat license-summary.txt >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        
+
     - name: 📤 Upload license report
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
@@ -212,9 +111,9 @@ jobs:
   security-summary:
     name: 📊 Security Summary
     runs-on: ubuntu-latest
-    needs: [dependency-scan, codeql-analysis, secret-scan, license-scan]
+    needs: [dependency-scan, secret-scan, license-scan]
     if: always()
-    
+
     steps:
     - name: 📊 Generate Security Report
       run: |
@@ -223,8 +122,7 @@ jobs:
         echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| 📦 Dependency Scan | ${{ needs.dependency-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔍 CodeQL Analysis | ${{ needs.codeql-analysis.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| 🔒 Secret Scan | ${{ needs.secret-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| 📄 License Scan | ${{ needs.license-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "🔗 **Action:** Review the Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
+        echo "CodeQL runs via repository default setup (Security tab)." >> $GITHUB_STEP_SUMMARY
