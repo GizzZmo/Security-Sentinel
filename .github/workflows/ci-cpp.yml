@@ -23,31 +23,29 @@ on:
 
 jobs:
   build-windows:
-    name: 🪟 Build Windows (MSVC)
+    name: 🗺️ Build Windows (MSVC)
     runs-on: windows-latest
-    
+
     strategy:
       matrix:
         build_type: [Debug, Release]
-        
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      
+
     - name: 🛠️ Setup MSVC
       uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
-      
+
     - name: 📦 Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      
+
     - name: 🔧 Configure CMake
-      run: |
-        cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        
+      run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
     - name: 🔨 Build C++ Project
-      run: |
-        cmake --build build --config ${{ matrix.build_type }} --parallel
-        
+      run: cmake --build build --config ${{ matrix.build_type }} --parallel
+
     - name: 📋 List build outputs
       run: |
         echo "### Build Output Files 📁" >> $env:GITHUB_STEP_SUMMARY
@@ -57,7 +55,7 @@ jobs:
           $size = [math]::Round($_.Length / 1KB, 2)
           echo "| $($_.FullName) | ${size} KB |" >> $env:GITHUB_STEP_SUMMARY
         }
-        
+
     - name: 🧪 Run basic executable test
       run: |
         echo "🔍 Searching for built executable..."
@@ -70,14 +68,14 @@ jobs:
           echo "⚠️ SecuritySentinel.exe not found, checking for other executables..."
           $any_exe = Get-ChildItem -Path "build" -Recurse -Include "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($any_exe) {
-            echo "✅ Found executable: $($any_exe.FullName)" 
+            echo "✅ Found executable: $($any_exe.FullName)"
             echo "✅ Build successful (alternate executable found)" >> $env:GITHUB_STEP_SUMMARY
           } else {
             echo "❌ No executable found in build directory" >> $env:GITHUB_STEP_SUMMARY
             exit 1
           }
         }
-        
+
     - name: 📤 Upload build artifacts
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
@@ -91,21 +89,20 @@ jobs:
   code-analysis:
     name: 🔍 Static Code Analysis
     runs-on: windows-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      
+
     - name: 🛠️ Setup MSVC
       uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
-      
+
     - name: 📦 Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      
+
     - name: 🔧 Configure with static analysis
-      run: |
-        cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug
-        
+      run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=Debug
+
     - name: 🔍 Run MSVC static analysis
       run: |
         echo "### Static Analysis Report 🔍" >> $env:GITHUB_STEP_SUMMARY
@@ -124,11 +121,11 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      
+
     - name: 🔍 Run Semgrep security scan
       uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d
       with:
@@ -136,11 +133,10 @@ jobs:
           p/security-audit
           p/secrets
           p/cwe-top-25
-        generateSarif: "1"
       env:
         SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
       continue-on-error: true
-        
+
     - name: 📤 Upload SARIF file to GitHub Security
       uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee
       with:
@@ -148,7 +144,7 @@ jobs:
         category: semgrep
       if: always() && hashFiles('semgrep.sarif') != ''
       continue-on-error: true
-      
+
     - name: 📤 Upload SARIF as artifact
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:

@@ -8,12 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  CMAKE_VERSION: '3.25.0'
   NODE_VERSION: '20.19.0'
   GO_VERSION: '1.24.x'
 
 jobs:
-  # Multi-platform C++ Build with Advanced Caching
   cpp-matrix-build:
     name: C++ Build - ${{ matrix.os }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
@@ -22,85 +20,100 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
         config: [Debug, Release]
-        include:
-          - os: windows-latest
-            generator: "Visual Studio 17 2022"
-            platform: x64
-          - os: ubuntu-latest
-            generator: "Unix Makefiles"
-            platform: x64
-          - os: macos-latest
-            generator: "Unix Makefiles"
-            platform: x64
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      
+
+    - name: 🛠️ Setup MSBuild
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
+
     - name: 🛠️ Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      with:
-        cmakeVersion: ${{ env.CMAKE_VERSION }}
-        
-    - name: 📦 Cache CMake build
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-      with:
-        path: |
-          build/
-          ~/.cmake/
-        key: ${{ runner.os }}-cmake-${{ matrix.config }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-        restore-keys: |
-          ${{ runner.os }}-cmake-${{ matrix.config }}-
-          ${{ runner.os }}-cmake-
-          
-    - name: 🏗️ Configure CMake (Windows)
+
+    - name: 🛠️ Setup MSVC compiler environment (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: 🧰 Ensure Ninja is available (Windows)
       if: runner.os == 'Windows'
       run: |
-        mkdir -p build
-        cd build
-        cmake .. -G "${{ matrix.generator }}" -A ${{ matrix.platform }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-        
-    - name: 🏗️ Configure CMake (Unix)
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
+
+    - name: 🏗️ Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: cmake -S . -B build-${{ matrix.config }} -G "Ninja Multi-Config"
+
+    - name: 🏗️ Configure CMake (Non-Windows)
       if: runner.os != 'Windows'
-      run: |
-        mkdir -p build
-        cd build
-        cmake .. -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-        
+      run: cmake -S . -B build-${{ matrix.config }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
     - name: 🔨 Build
-      run: cmake --build build --config ${{ matrix.config }} --parallel 4
+      run: cmake --build build-${{ matrix.config }} --config ${{ matrix.config }} --parallel 4
       continue-on-error: ${{ runner.os != 'Windows' }}
-      
-    - name: 📊 Build Statistics
+
+    - name: 📊 Build Statistics (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **Configuration**: ${{ matrix.config }}" >> $env:GITHUB_STEP_SUMMARY
+
+        $candidatePaths = @(
+          "build-${{ matrix.config }}/bin/${{ matrix.config }}",
+          "build-${{ matrix.config }}/bin"
+        )
+
+        foreach ($path in $candidatePaths) {
+          if (Test-Path $path) {
+            $sizeBytes = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            if ($null -eq $sizeBytes) { $sizeBytes = 0 }
+            $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
+            echo "- **Binary Size**: ${sizeMB} MB" >> $env:GITHUB_STEP_SUMMARY
+            break
+          }
+        }
+      shell: pwsh
+      continue-on-error: true
+
+    - name: 📊 Build Statistics (Non-Windows)
+      if: runner.os != 'Windows'
       run: |
         echo "### Build Statistics - ${{ matrix.os }} (${{ matrix.config }})" >> $GITHUB_STEP_SUMMARY
         echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Configuration**: ${{ matrix.config }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Generator**: ${{ matrix.generator }}" >> $GITHUB_STEP_SUMMARY
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          if [ -d "build/bin/${{ matrix.config }}" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin/${{ matrix.config }} | cut -f1)" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          if [ -d "build/bin" ]; then
-            echo "- **Binary Size**: $(du -sh build/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
-          fi
+        if [ -d "build-${{ matrix.config }}/bin" ]; then
+          echo "- **Binary Size**: $(du -sh build-${{ matrix.config }}/bin 2>/dev/null | cut -f1 || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
       continue-on-error: true
-      
-    - name: 📤 Upload build artifacts
-      if: runner.os == 'Windows' || matrix.config == 'Release'
+
+    - name: 📤 Upload Windows build artifacts
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
         name: cpp-${{ matrix.os }}-${{ matrix.config }}
         path: |
-          build/bin/**/*
-          build/${{ matrix.config }}/**/*
+          build-${{ matrix.config }}/bin/${{ matrix.config }}/**/*
+          build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
         retention-days: 14
         if-no-files-found: warn
 
-  # Go Module Build with Caching
+    - name: 📤 Upload non-Windows release artifacts
+      if: runner.os != 'Windows' && matrix.config == 'Release'
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+      with:
+        name: cpp-${{ matrix.os }}-${{ matrix.config }}
+        path: |
+          build-${{ matrix.config }}/bin/**/*
+          build-${{ matrix.config }}/${{ matrix.config }}/**/*
+        retention-days: 14
+        if-no-files-found: warn
+
   go-build:
     name: Go Module Build - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -108,33 +121,33 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      
+
     - name: 🐹 Setup Go
       uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
       with:
         go-version: ${{ env.GO_VERSION }}
         cache: true
         cache-dependency-path: core-go/go.sum
-        
+
     - name: 📦 Download dependencies
       working-directory: core-go
       run: go mod download
-      
+
     - name: 🔨 Build Go modules
       working-directory: core-go
       run: |
         go build -v ./...
         go build -buildmode=c-archive -o libcore.a
-        
+
     - name: 🧪 Run Go tests
       working-directory: core-go
       run: go test -v ./... -coverprofile=coverage.out
       continue-on-error: true
-      
+
     - name: 📊 Go Build Statistics
       working-directory: core-go
       run: |
@@ -151,7 +164,7 @@ jobs:
         fi
       shell: bash
       continue-on-error: true
-      
+
     - name: 📤 Upload Go artifacts
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
       with:
@@ -163,33 +176,32 @@ jobs:
         retention-days: 14
         if-no-files-found: warn
 
-  # Web Interface Build with Advanced Caching
   web-build:
     name: Web Build - Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node: ['20.19.0', '22.x']
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      
+
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903
       with:
         node-version: ${{ matrix.node }}
         cache: 'npm'
-        
+
     - name: 📦 Install dependencies
       run: npm ci
-      
+
     - name: 🔍 Type check
       run: npx tsc --noEmit
-      
+
     - name: 🏗️ Build web interface
       run: npm run build
-      
+
     - name: 📊 Build Statistics
       run: |
         echo "### Web Build Statistics - Node ${{ matrix.node }}" >> $GITHUB_STEP_SUMMARY
@@ -201,7 +213,7 @@ jobs:
           echo "- **Build Size**: $SIZE" >> $GITHUB_STEP_SUMMARY
           echo "- **File Count**: $FILES" >> $GITHUB_STEP_SUMMARY
         fi
-        
+
     - name: 📤 Upload web artifacts
       if: matrix.node == '20.19.0'
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
@@ -210,30 +222,29 @@ jobs:
         path: dist/
         retention-days: 14
 
-  # Build Summary Report
   build-summary:
     name: 📊 Build Summary Report
     runs-on: ubuntu-latest
     needs: [cpp-matrix-build, go-build, web-build]
     if: always()
-    
+
     steps:
     - name: 📥 Download all artifacts
       uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
       with:
         path: artifacts/
-        
+
     - name: 📊 Generate build report
       run: |
         echo "# 🏗️ Build Matrix Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## Artifact Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
         if [ -d "artifacts" ]; then
           echo "| Artifact | Size | Files |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|------|-------|" >> $GITHUB_STEP_SUMMARY
-          
+
           for dir in artifacts/*/; do
             if [ -d "$dir" ]; then
               name=$(basename "$dir")
@@ -243,6 +254,6 @@ jobs:
             fi
           done
         fi
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ Build matrix completed successfully" >> $GITHUB_STEP_SUMMARY

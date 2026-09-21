@@ -53,17 +53,28 @@ jobs:
       
     - name: Setup CMake
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
-      
-    - name: Configure CMake
+
+    - name: Ensure Ninja is available
+      if: runner.os == 'Windows'
       run: |
-        mkdir build
-        cd build
-        cmake .. -G "Visual Studio 17 2022" -A x64
-        
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
+
+    - name: Setup MSVC compiler environment
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: cmake -S . -B build -G "Ninja Multi-Config"
+
     - name: Build Debug
+      if: runner.os == 'Windows'
       run: cmake --build build --config Debug
       
     - name: Build Release
+      if: runner.os == 'Windows'
       run: cmake --build build --config Release
       
     - name: Upload Windows artifacts

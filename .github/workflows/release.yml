@@ -124,14 +124,25 @@ jobs:
     - name: Setup CMake (Windows)
       if: matrix.os == 'windows-latest'
       uses: lukka/get-cmake@628dd514bed37cb0a609e84a6186cbbaa2fc0140
+
+    - name: Ensure Ninja is available (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+          choco install ninja --yes --no-progress
+        }
+
+    - name: Setup MSVC compiler environment (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
       
     - name: Build Windows application
       if: matrix.os == 'windows-latest'
       run: |
-        mkdir build
-        cd build
-        cmake .. -G "Visual Studio 17 2022" -A x64
-        cmake --build . --config Release
+        cmake -S . -B build -G "Ninja Multi-Config"
+        cmake --build build --config Release
         
     - name: Package Windows application
       if: matrix.os == 'windows-latest'
@@ -316,4 +327,3 @@ jobs:
           For detailed installation instructions, see [Installation Guide](https://github.com/GizzZmo/Security-Sentinel/wiki/Installation-Guide)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
